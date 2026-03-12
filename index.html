@@ -1,0 +1,2901 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4A90E2">
+    <meta name="description" content="NeuroMath: Aplicación de cálculo mental progresivo ABN para primaria">
+    <title>NeuroMath - Cálculo Mental ABN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        /* === VARIABLES & RESET === */
+        :root {
+            --bg-body: #F5F7FA;
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --bg-glass: rgba(255, 255, 255, 0.85);
+            --primary: #4F46E5;
+            /* Indigo ~ Professional */
+            --primary-dark: #4338CA;
+            --primary-light: #EEF2FF;
+            --secondary: #10B981;
+            /* Emerald ~ Soft Green */
+            --secondary-dark: #059669;
+            --accent: #8B5CF6;
+            /* Violet */
+            --danger: #EF4444;
+            /* Soft Red */
+            --warning: #F59E0B;
+            /* Amber */
+            --text-main: #1F2937;
+            /* Gray 900 */
+            --text-light: #6B7280;
+            /* Gray 500 */
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            /* Softer shadow */
+            --shadow-hover: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --radius: 24px;
+            --radius-sm: 14px;
+            --font-main: 'Lexend', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: var(--bg-body);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(74, 144, 226, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(46, 204, 113, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(155, 89, 182, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            /* In iframes, prevent double scrolling */
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+            overflow-y: hidden;
+
+            /* iOS Fixes */
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        /* === LAYOUT & SCREENS === */
+        .app-container {
+            width: 100%;
+            max-width: 1200px;
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        /* === UI COMPONENTS === */
+        button {
+            font-family: var(--font-main);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 12px 24px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+            color: white;
+            padding: 12px 24px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+        }
+
+        .btn-icon-lg {
+            font-size: 2rem;
+            background: none;
+            padding: 10px;
+        }
+
+        .glass-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        /* === HOME SCREEN === */
+        #homeScreen {
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-text {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-sub {
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        .profile-selector {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .user-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .user-card.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .user-avatar {
+            font-size: 2.5rem;
+            background: #EEE;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .menu-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 25px 15px;
+            gap: 10px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .menu-btn.full-width {
+            grid-column: span 2;
+            background: linear-gradient(135deg, #FFF, #F0F4FF);
+        }
+
+        .menu-btn .emoji {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+
+        /* === OPERATION SELECTOR === */
+        .ops-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 20px;
+        }
+
+        .op-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: 0.2s;
+            border-bottom: 5px solid transparent;
+        }
+
+        .op-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .op-card.op-sense {
+            border-color: #9B59B6;
+        }
+
+        .op-card.op-sum {
+            border-color: #4A90E2;
+        }
+
+        .op-card.op-sub {
+            border-color: #E74C3C;
+        }
+
+        .op-card.op-mul {
+            border-color: #F1C40F;
+        }
+
+        .op-card.op-div {
+            border-color: #2ECC71;
+        }
+
+        /* === LEVEL SELECTOR === */
+        .levels-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .phase-block {
+            margin-bottom: 25px;
+        }
+
+        .phase-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: var(--radius-sm);
+        }
+
+        .phase-title {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .phase-grade {
+            font-size: 0.8rem;
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .levels-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .level-item {
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            text-align: left;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+        }
+
+        .level-item:hover {
+            transform: translateX(5px);
+            color: var(--primary);
+        }
+
+        .level-item.locked {
+            opacity: 0.6;
+            pointer-events: none;
+            filter: grayscale(1);
+        }
+
+        .level-badge {
+            font-size: 1.2rem;
+        }
+
+        /* === EXERCISE SCREEN === */
+        #exerciseScreen {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .exercise-layout {
+            display: grid;
+            grid-template-columns: 240px 1fr 280px;
+            gap: 20px;
+            height: 100%;
+            padding-bottom: 20px;
+        }
+
+        /* Sidebar Left (Profile) */
+        .sidebar {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .profile-stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .building-mini {
+            font-size: 3rem;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        /* Center (Exercise) */
+        .exercise-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .visual-area {
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .question-text {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.2;
+        }
+
+        .question-sub {
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .answer-input {
+            font-size: 2.5rem;
+            font-weight: 700;
+            width: 160px;
+            padding: 10px;
+            text-align: center;
+            border: 3px solid #E0E0E0;
+            border-radius: 12px;
+            font-family: var(--font-main);
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .answer-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .answer-input.correct {
+            border-color: var(--secondary);
+            background: #E8F8F0;
+        }
+
+        .answer-input.wrong {
+            border-color: var(--danger);
+            background: #FDEDEC;
+            animation: shake 0.4s;
+        }
+
+        .feedback-msg {
+            min-height: 24px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .feedback-msg.success {
+            color: var(--secondary-dark);
+        }
+
+        .feedback-msg.error {
+            color: var(--danger);
+        }
+
+        /* Sidebar Right (Strategy & Tools) */
+        .strategy-box {
+            background: #FFF9E6;
+            border: 1px solid #FFEAA7;
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .strategy-title {
+            color: #D35400;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .strategy-content {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #5D4037;
+        }
+
+        /* Parallel Box Hover */
+        #parallelBox:hover {
+            border-color: var(--primary) !important;
+            background: #EFF6FF !important;
+        }
+
+        /* Actions Bar */
+        .actions-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+        }
+
+        .btn-tool {
+            flex: 1;
+            padding: 10px;
+            font-size: 0.9rem;
+            border: 1px solid #EEE;
+            background: #FFF;
+            border-radius: 8px;
+        }
+
+        .btn-tool:hover {
+            background: #F8F9FA;
+            border-color: #DDD;
+        }
+
+        /* Numpad (Mobile) */
+        .numpad {
+            display: none;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            width: 100%;
+            max-width: 300px;
+            margin-top: 10px;
+        }
+
+        .num-btn {
+            padding: 15px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: white;
+            border: 1px solid #DDD;
+            border-radius: 10px;
+        }
+
+        .num-btn:active {
+            background: #EEE;
+        }
+
+        /* === CITY SCREEN === */
+        #cityScreen {
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .city-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 20px;
+        }
+
+        .building-item {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            opacity: 0.5;
+            filter: grayscale(1);
+            transition: 0.3s;
+        }
+
+        .building-item.unlocked {
+            opacity: 1;
+            filter: grayscale(0);
+            transform: scale(1.05);
+            border: 2px solid var(--primary);
+        }
+
+        .building-emoji {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* === TEACHER MODAL === */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+
+        /* === TABLE MODAL === */
+        #tableModal .modal-card {
+            max-width: 700px;
+        }
+
+        .number-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 4px;
+            margin-top: 15px;
+            max-height: 60vh;
+            overflow-y: auto;
+            /* Scrollable */
+            padding-right: 5px;
+        }
+
+        .grid-cell {
+            aspect-ratio: 1.5;
+            /* Rectangular for space efficiency */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #F8F9FA;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid #EEE;
+        }
+
+        .grid-cell.active {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .grid-cell.highlight {
+            background: var(--secondary);
+            color: white;
+        }
+
+        /* === DECOMPOSITION TOOL === */
+        .decomp-workspace {
+            min-height: 200px;
+            max-height: 350px;
+            overflow-y: auto;
+            background: #FAFAFA;
+            border: 2px dashed #CCC;
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 6px;
+            transition: border-color 0.2s;
+        }
+
+        .decomp-workspace:hover {
+            border-color: #999;
+        }
+
+        /* HUNDRED BLOCK - 10x10 green grid */
+        .block-hundred {
+            width: 60px;
+            height: 60px;
+            background:
+                repeating-linear-gradient(90deg, #2E7D32 0px, #2E7D32 5px, #1B5E20 5px, #1B5E20 6px),
+                repeating-linear-gradient(0deg, #2E7D32 0px, #2E7D32 5px, #1B5E20 5px, #1B5E20 6px);
+            background-size: 6px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid #1B5E20;
+            transition: transform 0.15s, box-shadow 0.15s;
+            position: relative;
+        }
+
+        .block-hundred:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.4);
+        }
+
+        .block-hundred::after {
+            content: '100';
+            position: absolute;
+            bottom: -2px;
+            right: 2px;
+            font-size: 0.5rem;
+            color: white;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* TEN BLOCK - red vertical bar */
+        .block-ten {
+            width: 12px;
+            height: 60px;
+            background: repeating-linear-gradient(0deg,
+                    #C62828 0px, #C62828 5px,
+                    #B71C1C 5px, #B71C1C 6px);
+            border-radius: 3px;
+            cursor: pointer;
+            border: 1px solid #B71C1C;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .block-ten:hover {
+            transform: scale(1.15);
+            box-shadow: 0 4px 10px rgba(198, 40, 40, 0.4);
+        }
+
+        /* UNIT BLOCK - blue small square */
+        .block-unit {
+            width: 12px;
+            height: 12px;
+            background: #1565C0;
+            border-radius: 2px;
+            cursor: pointer;
+            border: 1px solid #0D47A1;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .block-unit:hover {
+            transform: scale(1.3);
+            box-shadow: 0 3px 8px rgba(21, 101, 192, 0.4);
+        }
+
+        /* Animation for new blocks */
+        @keyframes blockPop {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            70% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .block-pop {
+            animation: blockPop 0.25s ease-out;
+        }
+
+        /* MISC UTILS */
+        .hidden {
+            display: none !important;
+        }
+
+        .ten-frame {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            background: #EEE;
+            padding: 4px;
+            border-radius: 4px;
+            width: 160px;
+        }
+
+        .tf-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #DDD;
+        }
+
+        .tf-dot.filled {
+            background: var(--danger);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .exercise-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto 1fr;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            /* Show summarized header instead */
+            .sidebar.mobile-summary {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                padding: 10px;
+            }
+
+            .question-text {
+                font-size: 2.5rem;
+            }
+
+            .numpad {
+                display: grid;
+                margin: 10px auto;
+                max-width: 320px;
+            }
+
+            .num-btn {
+                padding: 10px;
+            }
+
+            .input-group button.btn-check {
+                display: none;
+            }
+
+            /* Use numpad enter */
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+
+            /* Modals adjustments */
+            .modal-card {
+                width: 95%;
+                padding: 20px;
+            }
+
+            #avatarGrid {
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 12px !important;
+            }
+
+            #avatarGrid button {
+                width: 50px !important;
+                height: 50px !important;
+                font-size: 1.8rem !important;
+            }
+
+            #decompAreaA,
+            #decompAreaB,
+            #decompAreaC {
+                min-height: 150px;
+            }
+
+            #customPromptInput {
+                font-size: 1rem !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #avatarGrid {
+                grid-template-columns: repeat(3, 1fr) !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <!-- PANTALLA INICIO -->
+        <div id="homeScreen" class="screen active glass-panel">
+            <div class="logo-container">
+                <div class="logo-text">🧠 NeuroMath</div>
+                <div class="logo-sub">Tu gimnasio mental diario</div>
+            </div>
+
+            <!-- Selector de Perfil -->
+            <div class="profile-selector" id="profileSelector">
+                <!-- Se rellena con JS -->
+                <div class="user-card" onclick="Backend.createProfile()">
+                    <div class="user-avatar">➕</div>
+                    <div>
+                        <div style="font-weight:700">Nuevo Alumno</div>
+                        <div style="font-size:0.8rem;color:#777">Crear perfil</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menú Principal (oculto hasta loguear) -->
+            <div class="menu-grid hidden" id="mainMenu">
+                <button class="menu-btn full-width" onclick="Nav.goToOperations()">
+                    <span class="emoji">🎮</span>
+                    <span>Empezar a Practicar</span>
+                </button>
+                <button class="menu-btn" onclick="Nav.initTestSelection()">
+                    <span class="emoji">🧪</span>
+                    <span>Test Nivel</span>
+                </button>
+                <button class="menu-btn" onclick="Nav.goToCity()">
+                    <span class="emoji">🏙️</span>
+                    <span>Mi Ciudad</span>
+                </button>
+            </div>
+
+            <button class="btn-secondary"
+                style="margin-top:20px; background:transparent; color:#666; box-shadow:none; font-size:0.9rem"
+                onclick="Nav.toggleTeacherMode()">
+                👤 Modo Invitado
+            </button>
+            <div style="margin-top: 30px; font-size: 0.8rem; color: #999; text-align: center; font-weight: 500;">
+                Desarrollado por Juan Jesús Aragón Salguero
+            </div>
+        </div>
+
+        <!-- PANTALLA OPERACIONES -->
+        <div id="opsScreen" class="screen">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+                <button class="btn-icon-lg" onclick="Nav.goHome()">🔙</button>
+                <h2>Elige el entrenamiento</h2>
+            </div>
+            <div class="ops-grid">
+                <div class="op-card op-sense" onclick="Nav.selectOp(0)">
+                    <div style="font-size:3rem">🔢</div>
+                    <h3>Sentido Numérico</h3>
+                    <p style="font-size:0.8rem;color:#777">Subitización, Amigos del 10</p>
+                </div>
+                <div class="op-card op-sum" onclick="Nav.selectOp(1)">
+                    <div style="font-size:3rem">➕</div>
+                    <h3>Suma</h3>
+                    <p style="font-size:0.8rem;color:#777">Progresión lógica</p>
+                </div>
+                <div class="op-card op-sub" onclick="Nav.selectOp(2)">
+                    <div style="font-size:3rem">➖</div>
+                    <h3>Resta</h3>
+                    <p style="font-size:0.8rem;color:#777">Escaleras y detracción</p>
+                </div>
+                <div class="op-card op-mul" onclick="Nav.selectOp(3)">
+                    <div style="font-size:3rem">✖️</div>
+                    <h3>Multiplicación</h3>
+                    <p style="font-size:0.8rem;color:#777">Tablas y mental</p>
+                </div>
+                <div class="op-card op-div" onclick="Nav.selectOp(4)">
+                    <div style="font-size:3rem">➗</div>
+                    <h3>División</h3>
+                    <p style="font-size:0.8rem;color:#777">Mitades y reparto</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA NIVELES -->
+        <div id="levelsScreen" class="screen">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+                <button class="btn-icon-lg" onclick="Nav.goToOperations()">🔙</button>
+                <h2 id="opTitle">Niveles</h2>
+            </div>
+            <div class="levels-container" id="levelsList">
+                <!-- Se rellena con JS -->
+            </div>
+        </div>
+
+        <!-- PANTALLA SELECCIÓN DE TEST -->
+        <div id="testSelectScreen" class="screen">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+                <button class="btn-icon-lg" onclick="Nav.goHome()">🔙</button>
+                <h2>Elige el tipo de Test</h2>
+            </div>
+
+
+
+            <h3 style="margin-bottom:10px; font-size:1rem; color:#777">Evalúa una competencia específica:</h3>
+
+            <div class="ops-grid">
+                <div class="op-card op-sense" onclick="Nav.startTest(0)">
+                    <div style="font-size:2rem">🔢</div>
+                    <h3>Sentido N.</h3>
+                </div>
+                <div class="op-card op-sum" onclick="Nav.startTest(1)">
+                    <div style="font-size:2rem">➕</div>
+                    <h3>Suma</h3>
+                </div>
+                <div class="op-card op-sub" onclick="Nav.startTest(2)">
+                    <div style="font-size:2rem">➖</div>
+                    <h3>Resta</h3>
+                </div>
+                <div class="op-card op-mul" onclick="Nav.startTest(3)">
+                    <div style="font-size:2rem">✖️</div>
+                    <h3>Multiplicación</h3>
+                </div>
+                <div class="op-card op-div" onclick="Nav.startTest(4)">
+                    <div style="font-size:2rem">➗</div>
+                    <h3>División</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA EJERCICIO -->
+        <div id="exerciseScreen" class="screen">
+            <!-- Header Mobile -->
+            <div class="sidebar mobile-summary glass-panel">
+                <button onclick="Nav.goToLevels()">🏠</button>
+                <div>⭐ <span id="scoreValMob">0</span></div>
+                <div>🔥 <span id="streakValMob">0</span></div>
+            </div>
+
+            <div class="exercise-layout">
+                <!-- Sidebar Left -->
+                <div class="sidebar">
+                    <div class="profile-stat">
+                        <div class="user-avatar" id="sideAvatar">🧒</div>
+                        <h3 id="sideName">Alumno</h3>
+                    </div>
+                    <hr style="border:0; border-top:1px solid #EEE">
+                    <div class="profile-stat">
+                        <div class="stat-value" id="scoreVal">0</div>
+                        <div class="stat-label">Puntos Totales</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="stat-value" style="color:#E67E22" id="streakVal">0</div>
+                        <div class="stat-label">Racha Actual</div>
+                    </div>
+                    <div class="building-mini" id="nextBuilding">🏠</div>
+                    <div class="stat-label">Próximo objetivo</div>
+                </div>
+
+                <!-- Center Card -->
+                <div class="exercise-card">
+                    <span style="position:absolute; top:10px; left:15px; font-weight:700; color:#AAA; font-size:0.8rem"
+                        id="levelName">Nivel 1.1</span>
+
+                    <!-- Visual Area: Dice, TenFrames, etc -->
+                    <div class="visual-area" id="visualArea"></div>
+
+                    <!-- Question -->
+                    <div class="question-text" id="qText"></div>
+                    <div class="question-sub" id="qSub"></div>
+
+                    <!-- Input -->
+                    <div class="input-group">
+                        <input type="tel" class="answer-input" id="ansInput" autocomplete="off" placeholder="?">
+                        <button class="btn-primary btn-check" onclick="Game.check()">OK</button>
+                    </div>
+
+                    <!-- Feedback -->
+                    <div class="feedback-msg" id="feedback"></div>
+
+                    <!-- Actions -->
+                    <div class="actions-bar">
+                        <button class="btn-tool" onclick="UI.showTable()">📊 Tabla 1000</button>
+                        <button class="btn-tool" onclick="DecompEngine.open()"
+                            style="background:#E8F5E9;border-color:#A5D6A7;color:#2E7D32">🧩 Descomponer</button>
+                        <button class="btn-tool" onclick="UI.showHint()"
+                            style="background:#FFF8E1;border-color:#FFE082;color:#F57F17">💡 Pista</button>
+                        <button class="btn-tool" onclick="Game.skip()">➡️ Saltar</button>
+                    </div>
+
+                    <!-- Numpad for Mobile -->
+                    <div class="numpad">
+                        <button class="num-btn" onclick="UI.num(1)">1</button>
+                        <button class="num-btn" onclick="UI.num(2)">2</button>
+                        <button class="num-btn" onclick="UI.num(3)">3</button>
+                        <button class="num-btn" onclick="UI.num(4)">4</button>
+                        <button class="num-btn" onclick="UI.num(5)">5</button>
+                        <button class="num-btn" onclick="UI.num(6)">6</button>
+                        <button class="num-btn" onclick="UI.num(7)">7</button>
+                        <button class="num-btn" onclick="UI.num(8)">8</button>
+                        <button class="num-btn" onclick="UI.num(9)">9</button>
+                        <button class="num-btn" style="color:#E74C3C" onclick="UI.del()">⌫</button>
+                        <button class="num-btn" onclick="UI.num(0)">0</button>
+                        <button class="num-btn" style="background:var(--secondary);color:white"
+                            onclick="Game.check()">OK</button>
+                    </div>
+                </div>
+
+                <!-- Sidebar Right -->
+                <div class="sidebar">
+                    <div class="strategy-box">
+                        <div class="strategy-title">📋 ESTRATEGIA</div>
+                        <div class="strategy-content" id="stratText">
+                            Observa los números y calcula mentalmente.
+                        </div>
+                        <div id="stratDetail"
+                            style="display:none; margin-top:8px; padding:10px; background:linear-gradient(135deg,#E8F5E9,#FFF8E1); border-radius:8px; font-size:0.85rem; line-height:1.5; color:#333; border-left:3px solid #4CAF50;">
+                        </div>
+                    </div>
+                    <!-- Parallel Exercises Container -->
+                    <div id="parallelContainer" style="display:none; margin-top:20px;">
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <div style="font-size:0.75rem; font-weight:700; color:#64748B;">🔄 EJERCICIOS PARALELOS
+                            </div>
+                            <button onclick="Game.generateParallel()"
+                                style="background:#E2E8F0; border:none; border-radius:4px; padding:4px 8px; font-size:0.7rem; font-weight:700; cursor:pointer;"
+                                title="Generar Ejercicio">➕</button>
+                        </div>
+                        <div id="parallelList" style="display:flex; flex-direction:column; gap:10px;">
+                            <!-- JS Filled -->
+                        </div>
+                    </div>
+                    <div style="flex:1"></div>
+                    <button class="btn-secondary" onclick="Nav.goToLevels()">Salir</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA CIUDAD -->
+        <div id="cityScreen" class="screen">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <button class="btn-icon-lg" onclick="Nav.goHome()">🔙</button>
+                <h2>Mi Ciudad Numérica</h2>
+            </div>
+            <div style="text-align:center; padding:10px;">
+                <h3 style="color:var(--primary)">Puntuación Total: <span id="cityTotalScore">0</span></h3>
+            </div>
+            <div class="city-grid" id="cityGrid">
+                <!-- JS Filled -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL AVATAR PICKER -->
+    <div class="modal-overlay" id="avatarModal"
+        onclick="if(event.target===this)document.getElementById('avatarModal').style.display='none'">
+        <div class="modal-card" style="max-width:480px;">
+            <h3 style="text-align:center;margin-bottom:5px">🎨 Elige tu avatar</h3>
+            <p style="text-align:center;color:#777;font-size:0.85rem;margin-bottom:15px">¿Cuál se parece más a ti?</p>
+            <div id="avatarGrid"
+                style="display:grid; grid-template-columns:repeat(6,1fr); gap:8px; justify-items:center;"></div>
+        </div>
+    </div>
+
+    <!-- MODAL TABLA -->
+    <div class="modal-overlay" id="tableModal" onclick="if(event.target===this)UI.hideTable()">
+        <div class="modal-card">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+                <h3>Tabla Numérica (0-1000)</h3>
+                <button onclick="UI.hideTable()" style="font-size:1.5rem">✕</button>
+            </div>
+            <!-- Question Reference -->
+            <div id="tableQuestionRef" style="
+                background: var(--primary-light); 
+                color: var(--primary-dark);
+                padding: 10px; 
+                border-radius: 8px; 
+                margin: 10px 0; 
+                text-align: center; 
+                font-weight: 700;
+                font-size: 1.2rem;
+                display: none;">
+            </div>
+            <div class="number-grid" id="numGrid"></div>
+            <div style="margin-top:10px;font-size:0.8rem;text-align:center;color:#666">
+                💡 Desliza para ver más números. Toca para marcar.
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DESCOMPOSICIÓN (MANIPULATIVOS ABN) -->
+    <div class="modal-overlay" id="decompModal" onclick="if(event.target===this)DecompEngine.close()">
+        <div class="modal-card" style="max-width:900px; max-height:90vh; overflow-y:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+                <h3>🧩 Descomposición Manipulativa</h3>
+                <button onclick="DecompEngine.close()" style="font-size:1.5rem">✕</button>
+            </div>
+
+            <!-- Current Question Reference -->
+            <div id="decompQuestionRef" style="
+                background:linear-gradient(135deg, #E3F2FD, #BBDEFB);
+                padding:12px; border-radius:10px; margin:10px 0;
+                text-align:center; font-weight:700; font-size:1.3rem; color:#1565C0;">
+            </div>
+
+            <!-- Legend -->
+            <div
+                style="display:flex; gap:15px; justify-content:center; margin:8px 0; font-size:0.8rem; flex-wrap:wrap;">
+                <span><span
+                        style="display:inline-block;width:16px;height:16px;background:#2E7D32;border-radius:2px;vertical-align:middle"></span>
+                    Centena (100)</span>
+                <span><span
+                        style="display:inline-block;width:8px;height:16px;background:#C62828;border-radius:2px;vertical-align:middle"></span>
+                    Decena (10)</span>
+                <span><span
+                        style="display:inline-block;width:10px;height:10px;background:#1565C0;border-radius:2px;vertical-align:middle"></span>
+                    Unidad (1)</span>
+                <span style="color:#888">👆 Click = Descomponer | Arrastra para agrupar</span>
+            </div>
+
+            <!-- Workspace -->
+            <div style="display:flex; gap:15px; flex-wrap:wrap; justify-content:center;">
+                <!-- Operand A -->
+                <div style="flex:1; min-width:280px;">
+                    <div style="text-align:center;font-weight:700;margin-bottom:5px;color:#555" id="decompLabelA">Número
+                        A</div>
+                    <div class="decomp-workspace" id="decompAreaA">
+                    </div>
+                    <div style="text-align:center;margin-top:5px;font-weight:700;font-size:1.1rem" id="decompCountA">0
+                    </div>
+                </div>
+                <!-- Operand B -->
+                <div style="flex:1; min-width:280px;">
+                    <div style="text-align:center;font-weight:700;margin-bottom:5px;color:#555" id="decompLabelB">Número
+                        B</div>
+                    <div class="decomp-workspace" id="decompAreaB">
+                    </div>
+                    <div style="text-align:center;margin-top:5px;font-weight:700;font-size:1.1rem" id="decompCountB">0
+                    </div>
+                </div>
+                <!-- Operand C (hidden by default, shown for 3 operands) -->
+                <div style="flex:1; min-width:280px;" id="decompPanelC">
+                    <div style="text-align:center;font-weight:700;margin-bottom:5px;color:#555" id="decompLabelC">Número
+                        C</div>
+                    <div class="decomp-workspace" id="decompAreaC">
+                    </div>
+                    <div style="text-align:center;margin-top:5px;font-weight:700;font-size:1.1rem" id="decompCountC">0
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div style="display:flex; gap:10px; margin-top:10px; justify-content:center; flex-wrap:wrap;">
+                <button class="btn-tool" onclick="DecompEngine.undo()"
+                    style="background:#E3F2FD;color:#1565C0;border-color:#90CAF9">↩️ Deshacer</button>
+                <button class="btn-tool" id="decompRemoveBtn" onclick="DecompEngine.toggleRemoveMode()"
+                    style="background:#FFEBEE;color:#C62828;border-color:#EF9A9A">➖ Restar</button>
+                <button class="btn-tool" onclick="DecompEngine.autoGroup('A')"
+                    style="background:#E8F5E9;color:#2E7D32">🔄 Agrupar A</button>
+                <button class="btn-tool" onclick="DecompEngine.autoGroup('B')"
+                    style="background:#E8F5E9;color:#2E7D32">🔄 Agrupar B</button>
+                <button class="btn-tool" id="decompGroupCBtn" onclick="DecompEngine.autoGroup('C')"
+                    style="background:#E8F5E9;color:#2E7D32;display:none">🔄 Agrupar C</button>
+                <button class="btn-tool" onclick="DecompEngine.reset()" style="background:#FFF3E0;color:#E65100">🔄
+                    Reiniciar</button>
+            </div>
+
+            <div style="margin-top:8px;font-size:0.75rem;text-align:center;color:#999">
+                💡 Click = Descomponer | ➖ Restar = Eliminar bloques | Arrastra entre zonas
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EJEMPLO (NUEVO) -->
+    <div class="modal-overlay" id="exampleModal" onclick="if(event.target===this)UI.hideExample()">
+        <div class="modal-card" style="border-top: 5px solid var(--secondary)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
+                <h3 style="color:var(--secondary-dark)">💡 Ejemplo Paso a Paso</h3>
+                <button onclick="UI.hideExample()" style="font-size:1.5rem">✕</button>
+            </div>
+            <div id="exampleContent" style="font-size:1.1rem;line-height:1.6;color:#444">
+                <!-- JS Filled -->
+            </div>
+            <button class="btn-secondary" style="width:100%;margin-top:20px"
+                onclick="UI.hideExample()">Entendido</button>
+        </div>
+    </div>
+
+    <!-- MODAL PROFESOR -->
+    <div class="modal-overlay" id="teacherModal" onclick="if(event.target===this)Nav.toggleTeacherMode()">
+        <div class="modal-card"
+            style="max-height: 85vh; display: flex; flex-direction: column; width: 95%; max-width: 600px;">
+            <h3 id="teacherTitle" style="flex-shrink: 0;">👩‍🏫 Modo Maestro</h3>
+            <p style="margin-bottom:15px;color:#666;flex-shrink: 0;font-size:0.9rem">Selecciona cualquier nivel para
+                proyectarlo.</p>
+            <div id="teacherLevelsList" style="flex: 1; overflow-y: auto; min-height: 0; padding-right: 5px;"></div>
+            <button class="btn-secondary" style="width:100%;margin-top:15px;flex-shrink: 0;"
+                onclick="Nav.toggleTeacherMode()">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- CUSTOM PROMPT MODAL -->
+    <div class="modal-overlay" id="customPromptModal">
+        <div class="modal-card" style="max-width: 400px; text-align: center;">
+            <h3 id="customPromptText" style="margin-bottom: 20px;"></h3>
+            <input type="text" id="customPromptInput"
+                style="width:100%; padding:10px; margin-bottom: 20px; font-size:1.2rem; border:2px solid #E0E0E0; border-radius:12px; font-family:var(--font-main);">
+            <div style="display:flex; justify-content:center; gap: 10px;">
+                <button class="btn-secondary" style="background:#E0E0E0; color:#333; box-shadow:none;"
+                    onclick="Dialogs.closePrompt(false)">Cancelar</button>
+                <button class="btn-primary" onclick="Dialogs.closePrompt(true)">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM CONFIRM MODAL -->
+    <div class="modal-overlay" id="customConfirmModal">
+        <div class="modal-card" style="max-width: 400px; text-align: center;">
+            <h3 id="customConfirmText" style="margin-bottom: 20px;"></h3>
+            <div style="display:flex; justify-content:center; gap: 10px;">
+                <button class="btn-secondary" style="background:#E0E0E0; color:#333; box-shadow:none;"
+                    onclick="Dialogs.closeConfirm(false)">Cancelar</button>
+                <button class="btn-primary" style="background:var(--danger); box-shadow:none;"
+                    onclick="Dialogs.closeConfirm(true)">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT INJECTION POINT -->
+    <script>
+        const Dialogs = {
+            prompt: (msg) => {
+                return new Promise(resolve => {
+                    const overlay = document.getElementById('customPromptModal');
+                    const input = document.getElementById('customPromptInput');
+                    document.getElementById('customPromptText').innerText = msg;
+                    input.value = '';
+                    overlay.style.display = 'flex';
+                    setTimeout(() => input.focus(), 100);
+                    window._resolvePrompt = resolve;
+                });
+            },
+            closePrompt: (accepted) => {
+                const overlay = document.getElementById('customPromptModal');
+                const val = document.getElementById('customPromptInput').value.trim();
+                overlay.style.display = 'none';
+                if (window._resolvePrompt) {
+                    window._resolvePrompt(accepted && val ? val : null);
+                    window._resolvePrompt = null;
+                }
+            },
+            confirm: (msg) => {
+                return new Promise(resolve => {
+                    const overlay = document.getElementById('customConfirmModal');
+                    document.getElementById('customConfirmText').innerText = msg;
+                    overlay.style.display = 'flex';
+                    window._resolveConfirm = resolve;
+                });
+            },
+            closeConfirm: (res) => {
+                const overlay = document.getElementById('customConfirmModal');
+                overlay.style.display = 'none';
+                if (window._resolveConfirm) {
+                    window._resolveConfirm(res);
+                    window._resolveConfirm = null;
+                }
+            }
+        };
+
+        window.onerror = function (msg, url, line, col, error) {
+            // Solo alertar si es error crítico
+            console.error(msg, line);
+            return false;
+        };
+        // === GLOBAL STATE ===
+        const State = {
+            profile: null, // {id, name, avatar, score, streak, unlocked, history}
+            op: null, // Current Operation ID (0-4)
+            level: null, // Current Level ID (e.g. 'S1.1')
+            teacher: false,// Teacher mode active?
+            q: null, // Current Question Object
+            allProfiles: []// List of profiles for selector
+        };
+
+        // === CONFIGURATION ===
+        const OPS = [
+            { id: 0, name: 'Sentido Numérico', icon: '🔢', desc: 'Subitización & Amigos' },
+            { id: 1, name: 'Suma', icon: '➕', desc: 'Progresión Lógica' },
+            { id: 2, name: 'Resta', icon: '➖', desc: 'Escaleras & Detracción' },
+            { id: 3, name: 'Multiplicación', icon: '✖️', desc: 'Tablas & Mental' },
+            { id: 4, name: 'División', icon: '➗', desc: 'Mitades & Reparto' }
+        ];
+
+        const LEVELS = {
+            // ==========================================
+            // OP 0: SENTIDO NUMÉRICO (Restaurado y Mejorado)
+            // ==========================================
+            '0.1': { op: 0, name: 'SN1: Subitización (1-5)', strat: 'Reconoce sin contar', example: ['🍎🍎🍎', '¡3!'] },
+            '0.2': { op: 0, name: 'SN2: Marco de 10 (Ten Frame)', strat: '¿Cuántos faltan?', example: ['[••••• ••...]', '7... faltan 3'] },
+            '0.3': { op: 0, name: 'SN3: Amigos del 10', strat: 'Parejas que suman 10', example: ['7 + 3', '8 + 2', '5 + 5'] },
+            '0.4': { op: 0, name: 'SN4: Amigos del 100', strat: 'Parejas que suman 100', example: ['80 + 20', '75 + 25'] },
+            '0.5': { op: 0, name: 'SN5: Cruce de 100', strat: '¿Cuánto falta para 100?', example: ['98 + ? = 100', '2'] },
+
+            // ==========================================
+            // OP 1: SUMA (Fases ABN + Trucos)
+            // ==========================================
+            'S1.1': { op: 1, name: 'F1: Combinaciones básicas (hasta el 10)', strat: 'Suma de un dígito', example: ['3 + 4 = 7', '8 + 5 = 13'] },
+            'S1.2': { op: 1, name: 'F1: Dobles (1-5)', strat: 'Suma el mismo número', example: ['3 + 3 = 6'] },
+            'S1.3': { op: 1, name: 'F1: Casi Dobles (Dobles + 1)', strat: 'Usa el doble y suma 1', example: ['3 + 4', '3+3=6... +1=7'] },
+            'S1.4': { op: 1, name: 'F1: Dobles (6-10)', strat: 'Memoriza los grandes', example: ['7 + 7 = 14'] },
+
+            'S2.1': { op: 1, name: 'F2: 3 Sumandos (Agrupación)', strat: 'Busca el 10 primero', example: ['7 + 4 + 3', '7+3=10... +4=14'] },
+            'S2.9': { op: 1, name: 'F2: Truco del 9 (+9)', strat: 'Suma 10 y quita 1', example: ['24 + 9', '24 + 10 = 34', '34 - 1 = 33'] },
+
+            'S3.1': { op: 1, name: 'F3: Decenas comp + Unidades', strat: 'Junta D y U', example: ['20 + 8 = 28'] },
+            'S3.2': { op: 1, name: 'F3: Decenas comp + U (>10)', strat: 'Forma nueva decena', example: ['20 + 15', '20+10=30... +5=35'] },
+
+            'S4.1': { op: 1, name: 'F4: Decenas + Decenas', strat: 'Suma las decenas', example: ['20 + 30 = 50'] },
+
+            'S5.1': { op: 1, name: 'F5: Decena + Incompleta', strat: 'Suma D con D', example: ['30 + 25', '30+20=50... +5=55'] },
+
+            'S6.1': { op: 1, name: 'F6: Incompleta + Digito (Rebase)', strat: 'Completa la decena', example: ['38 + 5', '38+2=40... sobran 3 -> 43'] },
+            'S6.9': { op: 1, name: 'F6: Truco del 11 (+11)', strat: 'Suma 10 y añade 1', example: ['34 + 11', '34+10=44... +1=45'] },
+
+            'S7.1': { op: 1, name: 'F7: DI + DI (Sin rebase)', strat: 'D con D, U con U', example: ['43 + 21', '40+20=60', '3+1=4', '64'] },
+            'S7.2': { op: 1, name: 'F7: DI + DI (Con rebase)', strat: 'Cuidado con las unidades', example: ['48 + 24', '40+20=60', '8+4=12', '72'] },
+
+            'S8.1': { op: 1, name: 'F8: Centenas + Decenas', strat: 'Lectura posicional', example: ['300 + 40 = 340'] },
+            'S8.2': { op: 1, name: 'F8: Centenas + Incompleta', strat: 'Composición', example: ['300 + 45 = 345'] },
+
+            'S9.1': { op: 1, name: 'F9: Incompleta + U (Cruce 100)', strat: 'Completa la centena', example: ['398 + 5', '398+2=400... +3=403'] },
+
+            'S10.1': { op: 1, name: 'F10: Incompleta + Decenas', strat: 'Suma D a D', example: ['345 + 30', '40+30=70 -> 375'] },
+            'S10.2': { op: 1, name: 'F10: Incompleta + Decenas (Cruce)', strat: 'Rebasa centena', example: ['380 + 40', '380+20=400... +20=420'] },
+
+            'S11.1': { op: 1, name: 'F11: Incompleta + Incompleta', strat: 'Redondeo y compensación', example: ['298 + 45', '300 + 45 = 345', 'Menos 2 = 343'] },
+
+            'S12.1': { op: 1, name: 'F12: Gran Suma (Millares)', strat: 'Estrategia libre', example: ['1450 + 299', '1450+300=1750', '-1 = 1749'] },
+
+            // ==========================================
+            // OP 2: RESTA (Fases ABN + Trucos)
+            // ==========================================
+            'R1.1': { op: 2, name: 'F1: Complementarios', strat: 'Piensa en la suma', example: ['10 - 7 = 3', 'Porque 7+3=10'] },
+            'R1.2': { op: 2, name: 'F1: Resta < 20', strat: 'Baja a 10 y sigue', example: ['15 - 7', '15-5=10... -2=8'] },
+
+            'R2.1': { op: 2, name: 'F2: Decenas - Decenas', strat: 'Resta simple 5-2=3', example: ['50 - 20 = 30'] },
+            'R2.9': { op: 2, name: 'F2: Truco del -9', strat: 'Quita 10 y devuelve 1', example: ['45 - 9', '45-10=35... +1=36'] },
+
+            'R3.1': { op: 2, name: 'F3: DI - D0 (Quita decenas)', strat: 'Las unidades no cambian', example: ['48 - 20', '40-20=20... 28'] },
+
+            'R4.1': { op: 2, name: 'F4: D0 - U (Rompe decena)', strat: 'Del 10 quito U', example: ['50 - 6', '40 + (10-6) = 44'] },
+
+            'R5.1': { op: 2, name: 'F5: DI - DI (Sin llevar)', strat: 'Escalera descendente', example: ['48 - 23', '48-20=28... -3=25'] },
+            'R5.2': { op: 2, name: 'F5: DI - DI (Escalera)', strat: 'Ve del pequeño al grande', example: ['72 - 58', '58->60 (+2)', '60->72 (+12)', 'Total: 14'] },
+
+            'R6.1': { op: 2, name: 'F6: Centenas - Centenas', strat: 'Resta básica', example: ['800 - 300 = 500'] },
+
+            'R7.1': { op: 2, name: 'F7: CI - C00', strat: 'Solo toca las centenas', example: ['548 - 200 = 348'] },
+
+            'R8.1': { op: 2, name: 'F8: C00 - CI (Redondeo)', strat: 'Quita de más y devuelve', example: ['500 - 298', '500-300=200', 'Devuelve 2 -> 202'] },
+
+            'R9.1': { op: 2, name: 'F9: CD - CD (Escalera larga)', strat: 'Saltos grandes', example: ['450 - 180', '180->200 (+20)', '200->450 (+250)', '270'] },
+
+            'R10.1': { op: 2, name: 'F10: CI - CI (Compensación)', strat: 'Suma/resta igual a ambos', example: ['56 - 29', '+1 a los dos', '57 - 30 = 27'] },
+
+            'R11.1': { op: 2, name: 'F11: Resta Global', strat: 'Cualquier estrategia', example: ['Libre elección'] },
+
+            // ==========================================
+            // OP 3: MULTIPLICACIÓN (Enriquecida M0-M9)
+            // ==========================================
+            'M0.1': { op: 3, name: 'F0: Dobles Básicos', strat: 'Suma repetida', example: ['Doble de 6', '6+6=12'] },
+            'M0.2': { op: 3, name: 'F0: Dobles Decenas', strat: 'Doble de 30 es 60', example: ['Doble de 40', '4+4=8 -> 80'] },
+
+            'M1.1': { op: 3, name: 'F1: Tabla del 2', strat: 'Doble', example: ['7 x 2 = 14'] },
+            'M1.2': { op: 3, name: 'F1: Tabla del 5', strat: 'Mitad de x10', example: ['6 x 5', '6x10=60... mitad 30'] },
+            'M1.3': { op: 3, name: 'F1: Tabla del 10', strat: 'Añade un 0', example: ['8 x 10 = 80'] },
+
+            'M2.1': { op: 3, name: 'F2: Tabla del 3 (Construida)', strat: 'Doble + 1 vez', example: ['6 x 3', '12 + 6 = 18'] },
+            'M2.2': { op: 3, name: 'F2: Tabla del 4 (Doble Doble)', strat: 'Doble del doble', example: ['6 x 4', '12... 24'] },
+            'M2.3': { op: 3, name: 'F2: Tabla del 9 (Dedos/10-1)', strat: 'x10 menos una vez', example: ['7 x 9', '70 - 7 = 63'] },
+            'M2.4': { op: 3, name: 'F2: Tablas 6, 7, 8', strat: 'Hechos derivados', example: ['6 x 7', '5x7=35... +7=42'] },
+
+            'M3.1': { op: 3, name: 'F3: Distributiva x1 cifra', strat: 'Descompón y multiplica', example: ['23 x 4', '20x4=80', '3x4=12', '92'] },
+
+            'M4.1': { op: 3, name: 'F4: Desco 2 cifras', strat: 'Doble descomposición', example: ['15 x 6', '10x6=60', '5x6=30', '90'] },
+
+            'M5.1': { op: 3, name: 'F5: Dobles y Mitades', strat: 'Dobla uno, divide otro', example: ['25 x 4', '50 x 2', '100'] },
+
+            'M6.1': { op: 3, name: 'F6: Multiplicación por 0', strat: 'Ceros al final', example: ['30 x 40', '3x4=12... +00 = 1200'] },
+
+            'M7.1': { op: 3, name: 'F7: Porcentajes (10/50)', strat: 'Fracción simple', example: ['50% de 80', 'Mitad -> 40'] },
+            'M7.2': { op: 3, name: 'F7: Porcentajes (25/5)', strat: 'Mitad de mitad', example: ['25% de 40', 'Mitad 20... mitad 10'] },
+
+            'M8.1': { op: 3, name: 'F8: Decimales', strat: 'Como enteros y coma', example: ['0.5 x 6 = 3'] },
+
+            // ==========================================
+            // OP 4: DIVISIÓN (Fases ABN Completa)
+            // ==========================================
+            'D0.1': { op: 4, name: 'F0: Tablas Inversas', strat: '¿Qué número x...? ', example: ['24 : 6', '6 x ? = 24 -> 4'] },
+            'D0.2': { op: 4, name: 'F0: Mitades', strat: 'Parte por la mitad', example: ['Mitad de 18', '9'] },
+
+            'D1.1': { op: 4, name: 'F1: Exacta 2 Cifras', strat: 'Descompón D y U', example: ['48 : 2', '40/2=20, 8/2=4 -> 24'] },
+
+            'D2.1': { op: 4, name: 'F2: Exacta 3 Cifras', strat: 'Descompón C, D, U', example: ['360 : 3 = 120'] },
+            'D3.1': { op: 4, name: 'F3: Exacta 3 (Compleja)', strat: 'Parte por parte', example: ['369 : 3', '300:3=100, 60:3=20... 123'] },
+
+            'D4.1': { op: 4, name: 'F4: Entera (Con Resto)', strat: 'Busca el cercano', example: ['13 : 4', '12:4=3... Resto 1'] },
+            'D5.1': { op: 4, name: 'F5: Entera 3 Cifras', strat: 'Con Resto Final', example: ['365 : 3 = 121 r2'] },
+
+            'D6.1': { op: 4, name: 'F6: Resto Intermedio', strat: 'El resto pasa a la siguiente', example: ['52 : 4', '40:4=10', 'Sobra 12:4=3 -> 13'] },
+            'D7.1': { op: 4, name: 'F7: Doble Resto', strat: 'Pasa y sobra', example: ['355 : 3 = 118 r1'] },
+
+            'D8.1': { op: 4, name: 'F8: Resto Inicial', strat: 'Centena no exacta', example: ['429 : 3 = 143'] },
+
+            'D9.1': { op: 4, name: 'F9: Resto en cadena', strat: 'Divide paso a paso', example: ['528 : 3 = 176'] },
+            'D10.1': { op: 4, name: 'F10: Resto Total', strat: 'Experto', example: ['736 : 3 = 265 r1'] }
+        };
+
+        // === LEVEL DESCRIPTIONS (expanded titles for UI) ===
+        const LEVEL_DESCS = {
+            // SENTIDO NUMÉRICO
+            '0.1': 'Reconocer cantidades sin contar (1 a 5)',
+            '0.2': 'Contar huecos vacíos en el marco de 10',
+            '0.3': 'Parejas de números que suman 10',
+            '0.4': 'Parejas de números que suman 100',
+            '0.5': 'Cuánto falta para llegar a 100',
+            // SUMA
+            'S1.1': 'Sumar números de una cifra',
+            'S1.2': 'Sumar un número consigo mismo (1 al 5)',
+            'S1.3': 'Dobles más 1 (números consecutivos)',
+            'S1.4': 'Sumar un número consigo mismo (6 al 10)',
+            'S2.1': 'Tres sumandos buscando agrupación al 10',
+            'S2.9': 'Sumar 9 a cualquier número',
+            'S3.1': 'Decenas completas + Unidades sueltas',
+            'S3.2': 'Decenas completas + Unidades mayores de 10',
+            'S4.1': 'Decenas completas + Decenas completas',
+            'S5.1': 'Decena completa + Decena incompleta',
+            'S6.1': 'Decena incompleta + Dígito con rebase de decena',
+            'S6.9': 'Sumar 11 a cualquier número',
+            'S7.1': 'Decena incompleta + Decena incompleta sin rebase',
+            'S7.2': 'Decena incompleta + Decena incompleta con rebase',
+            'S8.1': 'Centenas completas + Decenas completas',
+            'S8.2': 'Centenas completas + Número incompleto',
+            'S9.1': 'Número incompleto + Unidades cruzando centena',
+            'S10.1': 'Número incompleto + Decenas completas',
+            'S10.2': 'Número incompleto + Decenas cruzando centena',
+            'S11.1': 'Número incompleto + Número incompleto',
+            'S12.1': 'Sumas con números grandes (millares)',
+            // RESTA
+            'R1.1': 'Complementarios del 10 (piensa en la suma)',
+            'R1.2': 'Restas con números menores de 20',
+            'R2.1': 'Decenas completas − Decenas completas',
+            'R2.9': 'Restar 9 a cualquier número',
+            'R3.1': 'Decena incompleta − Decena completa',
+            'R4.1': 'Decena completa − Unidades',
+            'R5.1': 'Decena incompleta − Decena incompleta sin llevar',
+            'R5.2': 'Decena incompleta − Decena incompleta (escalera)',
+            'R6.1': 'Centenas completas − Centenas completas',
+            'R7.1': 'Centena incompleta − Centena completa',
+            'R8.1': 'Centena completa − Centena incompleta',
+            'R9.1': 'Centena con decenas − Centena con decenas',
+            'R10.1': 'Centena incompleta − Centena incompleta',
+            'R11.1': 'Resta libre con cualquier estrategia',
+            // MULTIPLICACIÓN
+            'M0.1': 'Dobles de números básicos (1 al 10)',
+            'M0.2': 'Dobles de decenas completas',
+            'M1.1': 'Multiplicar por 2 (doble)',
+            'M1.2': 'Multiplicar por 5',
+            'M1.3': 'Multiplicar por 10',
+            'M2.1': 'Tabla del 3 construida desde el doble',
+            'M2.2': 'Tabla del 4 como doble del doble',
+            'M2.3': 'Tabla del 9 con truco del 10',
+            'M2.4': 'Tablas del 6, 7 y 8',
+            'M3.1': 'Propiedad distributiva por una cifra',
+            'M4.1': 'Descomposición de dos cifras',
+            'M5.1': 'Dobles y mitades para simplificar',
+            'M6.1': 'Multiplicar números con ceros finales',
+            'M7.1': 'Porcentajes del 10% y 50%',
+            'M7.2': 'Porcentajes del 25% y 5%',
+            'M8.1': 'Multiplicar con decimales sencillos',
+            // DIVISIÓN
+            'D0.1': 'Tablas de multiplicar al revés',
+            'D0.2': 'Calcular la mitad de un número',
+            'D1.1': 'División exacta de 2 cifras',
+            'D2.1': 'División exacta de 3 cifras',
+            'D3.1': 'División exacta de 3 cifras compleja',
+            'D4.1': 'División entera con resto (2 cifras)',
+            'D5.1': 'División entera con resto (3 cifras)',
+            'D6.1': 'División con resto intermedio',
+            'D7.1': 'División con doble resto',
+            'D8.1': 'División con resto en la primera cifra',
+            'D9.1': 'División con restos en cadena',
+            'D10.1': 'División completa de nivel experto'
+        };
+
+        // === DETAILED STRATEGY EXPLANATIONS ===
+        const STRAT_DETAILS = {
+            // SENTIDO NUMÉRICO
+            '0.1': '🧠 Subitización: Mira el grupo de objetos e intenta reconocer cuántos hay SIN contar uno a uno. Tu cerebro puede ver "3" o "4" de golpe, como cuando ves los puntos de un dado.',
+            '0.2': '🔟 Marco de 10: Imagina una caja con 10 huecos (5 arriba, 5 abajo). Si hay puntos en algunos huecos, ¿cuántos están vacíos? Contar los vacíos es tan útil como contar los llenos.',
+            '0.3': '🤝 Amigos del 10: Son las parejas de números que juntos hacen 10. Memorízalas: 1+9, 2+8, 3+7, 4+6, 5+5. ¡Son la base de todo el cálculo mental!',
+            '0.4': '💯 Amigos del 100: Como los amigos del 10 pero en grande. 10+90, 20+80, 25+75, 30+70... Piensa: "¿Cuánto le falta a este número para llegar a 100?"',
+            '0.5': '🎯 Cruce de 100: Piensa cuánto le falta al número para llegar exactamente a 100. Ejemplo: a 96 le faltan 4. Es como completar un puzle.',
+
+            // SUMA
+            'S1.1': '🧱 Combinaciones básicas: Suma números de un dígito combinando cantidades pequeñas de manera mental.',
+            'S1.2': '👯 Dobles: Cuando sumas un número consigo mismo (3+3, 4+4...). Memorízalos bien porque son atajos muy útiles.',
+            'S1.3': '👯‍♂️ Casi Dobles: Si los números se parecen mucho (3+4), usa el doble del menor y suma 1. 3+3=6, luego +1=7.',
+            'S1.4': '👯 Dobles Grandes: Memoriza los dobles del 6 al 10. 6+6=12, 7+7=14, 8+8=16, 9+9=18 y 10+10=20.',
+            'S2.1': '🔍 Agrupación: Si tienes 3 números, busca primero dos que sumen 10. Ejemplo: 7+4+3 → primero 7+3=10, luego +4=14. ¡Es más fácil!',
+            'S2.9': '9️⃣ Truco del +9: Sumar 9 es casi sumar 10. Así que suma 10 y luego quita 1. Ejemplo: 24+9 → 24+10=34, luego 34-1=33.',
+            'S3.1': '📦 Composición D+U: Junta una decena completa con unidades sueltas. 20+8=28. Es leer el número directamente.',
+            'S3.2': '📦 Composición D+U grande: Si las unidades pasan de 10, forma una nueva decena. 20+15 → 20+10=30, más 5 → 35.',
+            'S4.1': '🔢 Decenas Completas: Sumar decenas es como sumar los dedos de un número. 20+30 → piensa 2+3=5, luego pon el 0 → 50.',
+            'S5.1': '📐 Decena + Incompleta: Suma la decena completa primero y luego añade las unidades. 30+25 → 30+20=50, +5=55.',
+            'S6.1': '🔄 Rebase de Decena: Cuando las unidades pasan de 10, completa la decena y sigue. 38+5 → 38+2=40, sobran 3 → 43.',
+            'S6.9': '1️⃣1️⃣ Truco del +11: Es sumar 10 y luego sumar 1 más. Ejemplo: 34+11 → 34+10=44, +1=45.',
+            'S7.1': '📊 DI+DI Sin Rebase: Suma por separado: primero las decenas entre sí, luego las unidades entre sí, y junta. 43+21 → 40+20=60, 3+1=4 → 64.',
+            'S7.2': '⚠️ DI+DI Con Rebase: Como el anterior, pero las unidades pasan de 10. 48+24 → 40+20=60, 8+4=12 → 60+12=72. ¡Cuidado con "llevar"!',
+            'S8.1': '🏗️ Centena + Decena: Lectura posicional directa. 300+40=340. Solo hay que colocar cada número en su posición.',
+            'S8.2': '🏗️ Centena + Incompleta: Igual que el anterior pero con más cifras. 300+45=345.',
+            'S9.1': '🌉 Cruce de Centena: Completa primero la centena y luego sigue. 398+5 → 398+2=400, sobran 3 → 403.',
+            'S10.1': '➕ Suma D a número grande: Identifica las decenas del número y súmales. 345+30 → las decenas son 40, 40+30=70 → 375.',
+            'S10.2': '🌉 Rebasa Centena con D: Si al sumar decenas se pasa de centena. 380+40 → 380+20=400, +20=420.',
+            'S11.1': '🎯 Redondeo y Compensación: Redondea uno de los números a la centena más cercana, suma, y luego ajusta. 298+45 → 300+45=345, quita 2 → 343.',
+            'S12.1': '🚀 Gran Suma: Usa la estrategia que mejor te funcione. Redondea, descompón, o suma paso a paso. 1450+299 → 1450+300=1750, -1=1749.',
+
+            // RESTA
+            'R1.1': '🔄 Complementarios: Piensa al revés. 10-7=? Piensa: "7 + ¿cuánto? = 10". ¡La respuesta es 3!',
+            'R1.2': '⬇️ Baja a 10: Si el número es mayor que 10, baja primero al 10 y luego sigue restando. 15-7 → 15-5=10, -2=8.',
+            'R2.1': '0️⃣ Resta de Decenas: Es como restar los dedos. 50-20 → piensa 5-2=3, pon el 0 → 30.',
+            'R2.9': '9️⃣ Truco del -9: Restar 9 es casi restar 10. Quita 10 y devuelve 1. 45-9 → 45-10=35, +1=36.',
+            'R3.1': '📐 DI - D0: Quita solo las decenas, las unidades no cambian. 48-20 → 40-20=20, las 8 siguen → 28.',
+            'R4.1': '💔 Rompe Decena: De una decena completa quita unidades. 50-6 → piensa 10-6=4, más las 40 → 44. O mejor: 50-6 → 44.',
+            'R5.1': '📉 Escalera Descendente: Quita primero las decenas y luego las unidades. 48-23 → 48-20=28, -3=25.',
+            'R5.2': '🪜 Escalera Ascendente: Ve del número pequeño al grande dando saltos. 72-58 → de 58 a 60 son 2, de 60 a 72 son 12 → Total: 14.',
+            'R6.1': '🔢 Centenas-Centenas: Como restar los dedos. 800-300 → 8-3=5 → 500.',
+            'R7.1': '📐 CI-C00: Quita solo las centenas, el resto no cambia. 548-200 → 5-2=3 → 348.',
+            'R8.1': '🎯 Redondeo en Resta: Quita de más y devuelve lo que sobra. 500-298 → 500-300=200, devuelve 2 → 202.',
+            'R9.1': '🪜 Saltos Grandes: Ve del número pequeño al grande dando saltos grandes. 450-180 → de 180 a 200 son +20, de 200 a 450 son +250. Total: 270. ¡Es como subir escaleras de dos en dos!',
+            'R10.1': '⚖️ Compensación: Suma o resta lo mismo a los dos números para hacer la cuenta más fácil. 56-29 → suma 1 a los dos → 57-30=27. ¡El resultado no cambia!',
+            'R11.1': '🏆 Resta Libre: Elige la estrategia que mejor domine para resolver la resta: escalera, compensación, redondeo... ¡Tú decides!',
+
+            // MULTIPLICACIÓN
+            'M0.1': '👯 Dobles = x2: Doble es sumar el número consigo mismo. Doble de 6 = 6+6 = 12. Si sabes los dobles, ¡ya sabes la tabla del 2!',
+            'M0.2': '👯 Dobles de Decenas: Como los dobles normales pero con 0. Doble de 40 → doble de 4=8, pon el 0 → 80.',
+            'M1.1': '✌️ Tabla del 2: Multiplica por 2 = Doble. Cuenta de 2 en 2: 2, 4, 6, 8, 10, 12, 14, 16, 18, 20.',
+            'M1.2': '🖐️ Tabla del 5: Truco: multiplica por 10 y toma la mitad. 6×5 → 6×10=60, mitad de 60=30.',
+            'M1.3': '🔟 Tabla del 10: ¡La más fácil! Solo añade un 0 al final. 8×10=80.',
+            'M2.1': '3️⃣ Tabla del 3: x3 = Doble + 1 vez más. 6×3 → doble de 6=12, +6=18.',
+            'M2.2': '4️⃣ Tabla del 4: x4 = Doble del doble. 6×4 → doble de 6=12, doble de 12=24.',
+            'M2.3': '9️⃣ Tabla del 9: x9 = x10 - una vez. 7×9 → 7×10=70, -7=63. También: los dedos del 9.',
+            'M2.4': '🧮 Tablas 6,7,8: Usa hechos que ya sepas. 6×7 → 5×7=35, +7=42. O 7×7=49, -7=42.',
+            'M3.1': '📦 Distributiva: Descompón el número grande. 23×4 → 20×4=80, 3×4=12 → 80+12=92.',
+            'M4.1': '📦 Doble Descomposición: Descompón en decenas y unidades. 15×6 → 10×6=60, 5×6=30 → 90.',
+            'M5.1': '⚖️ Dobles y Mitades: Dobla un factor y divide el otro por 2. 25×4 → 50×2=100. ¡Más fácil!',
+            'M6.1': '0️⃣ Multiplicar con Ceros: Multiplica los números sin ceros y luego añade todos los ceros. 30×40 → 3×4=12, añade 00 → 1200.',
+            'M7.1': '💯 Porcentajes Fáciles: 50% = la mitad, 10% = quitar un 0. 50% de 80 → mitad → 40.',
+            'M7.2': '💯 Porcentajes 25/5%: 25% = mitad de la mitad. 25% de 40 → mitad=20, mitad=10. 5%=mitad del 10%.',
+            'M8.1': '🔢 Decimales: Multiplica como si fueran enteros y luego coloca la coma. 0.5×6 → 5×6=30, pon la coma → 3.0.',
+
+            // DIVISIÓN
+            'D0.1': '🔄 Tablas Inversas: Piensa la multiplicación al revés. 24:6 → ¿6 × cuánto = 24? → 4.',
+            'D0.2': '✂️ Mitades: Partir por la mitad = dividir entre 2. Mitad de 18 → 9. Para números grandes: mitad de cada parte.',
+            'D1.1': '📦 Descompón D y U: Divide las decenas y las unidades por separado. 48:2 → 40:2=20, 8:2=4 → 24.',
+            'D2.1': '📦 Descompón C,D,U: Como el anterior pero con centenas. 360:3 → 300:3=100, 60:3=20 → 120.',
+            'D3.1': '📦 Parte por Parte: Divide cada orden por separado. 369:3 → 300:3=100, 60:3=20, 9:3=3 → 123.',
+            'D4.1': '🔍 Busca el Cercano: Busca el múltiplo más cercano. 13:4 → 4×3=12, sobra 1 → Cociente 3, Resto 1.',
+            'D5.1': '🔍 Con Resto Final: Divide un número grande buscando múltiplos. 365:3 → 3×121=363, sobran 2 → 121 r2.',
+            'D6.1': '➡️ Resto Intermedio: Cuando no puedes dividir exacto, el resto se junta con la siguiente cifra. 52:4 → 40:4=10, sobran 12, 12:4=3 → 13.',
+            'D7.1': '➡️ Doble Resto: El resto se arrastra dos veces. Divide paso a paso y lleva el sobrante al siguiente paso.',
+            'D8.1': '🔄 Resto Inicial: La primera cifra no se divide exacta. Ajusta y pasa el resto a las decenas.',
+            'D9.1': '🔗 Resto en Cadena: Divide cifra a cifra arrastrando restos. Como una cadena donde cada paso depende del anterior.',
+            'D10.1': '🏆 Experto: Domina todas las estrategias: descomponer, buscar múltiplos, arrastrar restos. ¡Eres un crack!'
+        };
+        const CITY_ITEMS = [{ pt: 0, nm: 'Casa', icon: '🏠' }, { pt: 100, nm: 'Escuela', icon: '🏫' }, {
+            pt: 250,
+            nm: 'Biblio', icon: '📚'
+        }, { pt: 500, nm: 'Observatorio', icon: '🔭' }, {
+            pt: 800, nm: 'Parque', icon: '🏞️'
+        }, { pt: 1200, nm: 'Hospital', icon: '🏥' }, { pt: 1800, nm: 'Estadio', icon: '🏟️' }, {
+            pt: 2500,
+            nm: 'Rascacielos', icon: '🏙️'
+        }, { pt: 3500, nm: 'Cohete', icon: '🚀' }, {
+            pt: 5000, nm: 'Castillo',
+            icon: '🏰'
+        }];
+    </script>
+    <script>
+        // === BACKEND (IndexedDB) ===
+        const Backend = {
+            db: null, init: () => {
+                return new Promise((resolve, reject) => {
+                    const req = indexedDB.open('NeuroMathDB', 1);
+                    req.onupgradeneeded = e => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains('profiles')) {
+                            db.createObjectStore('profiles', { keyPath: 'id' });
+                        }
+                    };
+                    req.onsuccess = e => {
+                        Backend.db = e.target.result;
+                        resolve();
+                    };
+                    req.onerror = e => reject(e);
+                });
+            },
+            createProfile: async (chosenAvatar) => {
+                // Step 1: If no avatar yet, ask name then show picker
+                if (!chosenAvatar) {
+                    const name = await Dialogs.prompt("Nombre del alumno:");
+                    if (!name) return;
+                    Backend._pendingName = name;
+                    // Show avatar picker
+                    const AVATARS = [
+                        '👦', '👧', '👦🏻', '👧🏻', '👦🏽', '👧🏽',
+                        '👦🏿', '👧🏿', '🧒', '🧒🏻', '🧒🏽', '🧒🏿',
+                        '👱', '👱‍♀️', '🧑', '🧑🏻', '🧑🏽', '🧑🏿',
+                        '🦸', '🦸‍♀️', '🧙', '🧚', '🤖', '👽'
+                    ];
+                    const grid = document.getElementById('avatarGrid');
+                    grid.innerHTML = '';
+                    AVATARS.forEach(av => {
+                        const btn = document.createElement('button');
+                        btn.textContent = av;
+                        btn.style.cssText = 'font-size:2.2rem;width:56px;height:56px;border:2px solid #E0E0E0;border-radius:12px;background:white;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;';
+                        btn.onmouseenter = () => { btn.style.transform = 'scale(1.2)'; btn.style.borderColor = '#4CAF50'; btn.style.boxShadow = '0 4px 12px rgba(76,175,80,0.3)'; };
+                        btn.onmouseleave = () => { btn.style.transform = 'scale(1)'; btn.style.borderColor = '#E0E0E0'; btn.style.boxShadow = 'none'; };
+                        btn.onclick = () => Backend.createProfile(av);
+                        grid.appendChild(btn);
+                    });
+                    document.getElementById('avatarModal').style.display = 'flex';
+                    return;
+                }
+                // Step 2: Save with chosen avatar
+                document.getElementById('avatarModal').style.display = 'none';
+                const profile = {
+                    id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'id-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now(),
+                    name: Backend._pendingName,
+                    avatar: chosenAvatar,
+                    score: 0,
+                    streak: 0,
+                    levelProgress: {},
+                    levelStreak: {},
+                    history: []
+                };
+                Backend._pendingName = null;
+                const tx = Backend.db.transaction('profiles', 'readwrite');
+                tx.objectStore('profiles').add(profile);
+                await new Promise(r => tx.oncomplete = r);
+                Backend.loadProfiles();
+            },
+            getProfiles: async () => {
+                if (!Backend.db) await Backend.init();
+                return new Promise(resolve => {
+                    const tx = Backend.db.transaction('profiles', 'readonly');
+                    const req = tx.objectStore('profiles').getAll();
+                    req.onsuccess = () => resolve(req.result);
+                });
+            },
+            saveProgress: async (points, correct) => {
+                if (!State.profile || State.teacher) return 0;
+
+                // Init fields if legacy
+                if (!State.profile.levelProgress) State.profile.levelProgress = {};
+                if (!State.profile.levelStreak) State.profile.levelStreak = {};
+
+                let currentLevelStreak = 0;
+
+                // Normal Mode Mastery Logic
+                if (!State.testMode && State.level) {
+                    if (!State.profile.levelStreak[State.level]) State.profile.levelStreak[State.level] = 0;
+
+                    if (correct) {
+                        State.profile.levelStreak[State.level]++;
+                        // Cap points if mastery reached (20 CONSECUTIVE)
+                        if (State.profile.levelStreak[State.level] >= 20) {
+                            points = 0;
+                        }
+                    } else {
+                        // Reset streak on error
+                        State.profile.levelStreak[State.level] = 0;
+                    }
+                    currentLevelStreak = State.profile.levelStreak[State.level];
+                }
+
+                State.profile.score += points;
+                if (correct) State.profile.streak++; else State.profile.streak = 0;
+
+                const tx = Backend.db.transaction('profiles', 'readwrite');
+                tx.objectStore('profiles').put(State.profile);
+
+                return currentLevelStreak;
+            },
+            deleteProfile: async (id, name) => {
+                if (!(await Dialogs.confirm(`¿Eliminar el perfil de "${name}"?\nSe borrarán todos sus datos.`))) return;
+                const tx = Backend.db.transaction('profiles', 'readwrite');
+                tx.objectStore('profiles').delete(id);
+                await new Promise(r => tx.oncomplete = r);
+                Backend.loadProfiles();
+            },
+            loadProfiles: async () => {
+                State.allProfiles = await Backend.getProfiles();
+                const container = document.getElementById('profileSelector');
+                container.innerHTML = `<div class="user-card" onclick="Backend.createProfile()">
+                            <div class="user-avatar">➕</div>
+                            <div>
+                                <div style="font-weight:700">Nuevo</div>
+                                <div style="font-size:0.8rem">Crear perfil</div>
+                            </div>
+                        </div>`;
+                State.allProfiles.forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = 'user-card';
+                    div.style.position = 'relative';
+
+                    // Create main structure with avatar wrapper
+                    div.innerHTML = `<div style="position:relative; margin-right:15px;">
+                            <div class="user-avatar">${p.avatar}</div>
+                        </div>
+                        <div style="flex:1">
+                            <div style="font-weight:700">${p.name}</div>
+                            <div style="font-size:0.8rem">⭐ ${p.score}</div>
+                        </div>`;
+
+                    // Create Delete Button
+                    const delBtn = document.createElement('button');
+                    delBtn.innerHTML = '<svg width="10" height="2" viewBox="0 0 10 2" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="2" rx="1" fill="currentColor"/></svg>';
+                    delBtn.style.cssText = 'position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; border:none; background:#FFCDD2; color:#C62828; cursor:pointer; opacity:0.8; transition:all 0.2s; display:flex; align-items:center; justify-content:center; padding:0; z-index:2; box-shadow:0 2px 4px rgba(0,0,0,0.1);';
+
+                    delBtn.onmouseenter = () => { delBtn.style.opacity = '1'; delBtn.style.transform = 'scale(1.1)'; };
+                    delBtn.onmouseleave = () => { delBtn.style.opacity = '0.8'; delBtn.style.transform = 'scale(1)'; };
+                    delBtn.onclick = (e) => { e.stopPropagation(); Backend.deleteProfile(p.id, p.name); };
+
+                    // Append button to the avatar wrapper (first child)
+                    div.firstElementChild.appendChild(delBtn);
+
+                    div.onclick = () => Auth.login(p);
+                    container.insertBefore(div, container.firstChild);
+                });
+            }
+        };
+    </script>
+    <script>
+        // === AUTH & NAV ===
+        const Auth = {
+            login: (profile) => {
+                State.profile = profile;
+                document.getElementById('profileSelector').classList.add('hidden');
+                document.getElementById('mainMenu').classList.remove('hidden');
+                document.getElementById('sideName').textContent = profile.name;
+                document.getElementById('sideAvatar').textContent = profile.avatar;
+                UI.updateStats();
+            }
+        };
+
+        const Nav = {
+            goHome: () => {
+                State.profile = null;
+                State.testMode = false;
+                document.getElementById('profileSelector').classList.remove('hidden');
+                document.getElementById('mainMenu').classList.add('hidden');
+                Backend.loadProfiles();
+                UI.showScreen('homeScreen');
+            },
+            goToOperations: () => UI.showScreen('opsScreen'),
+            goToLevels: () => UI.showScreen('levelsScreen'),
+            goToCity: () => {
+                UI.renderCity();
+                UI.showScreen('cityScreen');
+            },
+            selectOp: (opId) => {
+                State.op = opId;
+                UI.renderLevels(opId);
+                UI.showScreen('levelsScreen');
+                document.getElementById('opTitle').textContent = OPS[opId].name;
+            },
+            startLevel: (lvlId) => {
+                State.level = lvlId;
+                UI.showScreen('exerciseScreen');
+                Game.initLevel(lvlId);
+            },
+            toggleTeacherMode: () => {
+                const el = document.getElementById('teacherModal');
+                if (el.style.display === 'flex') {
+                    el.style.display = 'none';
+                    State.teacher = false;
+                } else {
+                    el.style.display = 'flex';
+                    State.teacher = true;
+                    UI.renderTeacherOps();
+                }
+            },
+            initTestSelection: () => {
+                if (!State.profile) return alert("Selecciona un perfil primero");
+                UI.showScreen('testSelectScreen');
+            },
+            startTest: (opId) => {
+                let msg = `¿Empezar test de ${OPS[opId].name}? 20 preguntas con dificultad progresiva y adaptativa.`;
+
+                if (confirm(msg)) {
+                    State.testMode = true;
+                    State.testOp = opId;
+                    State.testScore = 0;
+                    State.testCount = 0;
+                    State.failedPhase = null; // Reset suggestion tracking
+                    UI.showScreen('exerciseScreen');
+                    Game.initTest(opId);
+                }
+            }
+        };
+    </script>
+    <script>
+        // === UI CONTROLLER ===
+        const UI = {
+            showScreen: (id) => {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(id).classList.add('active');
+            },
+            renderLevels: (opId) => {
+                const list = document.getElementById('levelsList');
+                list.innerHTML = '';
+                for (const [key, val] of Object.entries(LEVELS)) {
+                    if (val.op === opId) {
+                        const div = document.createElement('div');
+                        div.className = 'level-item';
+                        div.innerHTML = `<div style="display:flex; flex-direction:column; gap:4px; max-width:85%">
+                            <span style="font-weight:600">${key}: ${val.name}</span>
+                            <span style="font-size:0.75rem; color:#666; font-weight:normal">${LEVEL_DESCS[key] || val.strat}</span>
+                        </div>
+                        <span class="level-badge">▶️</span>`;
+                        div.onclick = () => Nav.startLevel(key);
+                        list.appendChild(div);
+                    }
+                }
+            },
+            renderCity: () => {
+                const grid = document.getElementById('cityGrid');
+                const score = State.profile ? State.profile.score : 0;
+                document.getElementById('cityTotalScore').textContent = score;
+                grid.innerHTML = '';
+                CITY_ITEMS.forEach(b => {
+                    const unlocked = score >= b.pt;
+                    const div = document.createElement('div');
+                    div.className = `building-item ${unlocked ? 'unlocked' : ''}`;
+                    div.innerHTML = `<span class="building-emoji">${b.icon}</span>
+        <div style="font-weight:700">${b.nm}</div>
+        <div style="font-size:0.7rem">${unlocked ? '✅' : '🔒 ' + b.pt}</div>`;
+                    grid.appendChild(div);
+                });
+            },
+            renderTeacherOps: () => {
+                const list = document.getElementById('teacherLevelsList');
+                list.innerHTML = '';
+                document.getElementById('teacherTitle').textContent = 'Elige Operación';
+
+                OPS.forEach(op => {
+                    const btn = document.createElement('button');
+                    btn.className = 'level-item';
+                    btn.style.width = '100%';
+                    btn.style.marginBottom = '5px';
+                    btn.innerHTML = `${op.icon} ${op.name}`;
+                    btn.onclick = () => {
+                        UI.renderTeacherLevels(op.id);
+                    };
+                    list.appendChild(btn);
+                });
+            },
+            renderTeacherLevels: (opId) => {
+                const list = document.getElementById('teacherLevelsList');
+                list.innerHTML = '';
+                document.getElementById('teacherTitle').textContent = `Niveles: ${OPS[opId].name}`;
+
+                // Back Button
+                const backBtn = document.createElement('button');
+                backBtn.className = 'btn-secondary';
+                backBtn.style.marginBottom = '10px';
+                backBtn.textContent = '🔙 Volver a Operaciones';
+                backBtn.onclick = () => UI.renderTeacherOps();
+                list.appendChild(backBtn);
+
+                for (const [key, val] of Object.entries(LEVELS)) {
+                    if (val.op === opId) {
+                        const btn = document.createElement('button');
+                        btn.className = 'level-item';
+                        btn.style.width = '100%';
+                        btn.style.marginBottom = '5px';
+                        btn.innerHTML = `<div style="text-align:left; display:flex; flex-direction:column; gap:4px; max-width:85%">
+                            <span style="font-weight:600">${key}: ${val.name}</span>
+                            <span style="font-size:0.75rem; color:#666; font-weight:normal">${LEVEL_DESCS[key] || val.strat}</span>
+                        </div>
+                        <span class="level-badge">▶️</span>`;
+                        btn.onclick = () => {
+                            Nav.toggleTeacherMode(); // Close modal
+                            State.teacher = true; // Set teacher mode again
+                            State.op = val.op; // Set context
+                            Nav.startLevel(key);
+                        };
+                        list.appendChild(btn);
+                    }
+                }
+            },
+            updateStats: () => {
+                if (!State.profile) return;
+                const s = State.profile.score;
+                const r = State.profile.streak;
+                document.getElementById('scoreVal').textContent = s;
+                document.getElementById('streakVal').textContent = r;
+                document.getElementById('scoreValMob').textContent = s;
+                document.getElementById('streakValMob').textContent = r;
+
+                // Next building
+                const next = CITY_ITEMS.find(b => b.pt > s) || CITY_ITEMS[CITY_ITEMS.length - 1];
+                document.getElementById('nextBuilding').textContent = next.icon;
+            },
+            showHint: () => {
+                const detail = document.getElementById('stratDetail');
+                const short = document.getElementById('stratText').textContent;
+                const detailText = detail.textContent;
+                if (!detailText && !short) return;
+                // On desktop: toggle the detail in sidebar
+                if (detail.style.display === 'none' || !detail.style.display) {
+                    detail.style.display = 'block';
+                } else {
+                    detail.style.display = 'none';
+                }
+                // On mobile (sidebar hidden): show alert as fallback
+                if (window.innerWidth <= 768) {
+                    alert(detailText || short || 'Sin pista disponible');
+                }
+            },
+            showTable: () => {
+                const modal = document.getElementById('tableModal');
+                const grid = document.getElementById('numGrid');
+                modal.style.display = 'flex';
+                grid.innerHTML = '';
+                // Render 0 to 1000 (0-999 actually or 1-1000)
+                // Let's do 0 to 999 for easier index
+                for (let i = 0; i < 1000; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.textContent = i;
+                    cell.id = 'cell-' + i; // For auto-scroll
+                    cell.onclick = () => cell.classList.toggle('highlight');
+                    grid.appendChild(cell);
+                }
+
+                // Show current question if available
+                const qRef = document.getElementById('tableQuestionRef');
+                if (State.q && State.q.text && document.getElementById('exerciseScreen').classList.contains('active')) {
+                    qRef.style.display = 'block';
+                    qRef.innerHTML = `Referencia: <span style="font-size:1.4rem">${State.q.text} = ?</span>`;
+                } else {
+                    qRef.style.display = 'none';
+                }
+
+                // Auto-scroll to current number if relevant
+                if (State.q && State.q.text) {
+                    // Try to extract first number
+                    const m = State.q.text.match(/\d+/);
+                    if (m) {
+                        const n = parseInt(m[0]);
+                        setTimeout(() => {
+                            const el = document.getElementById('cell-' + n);
+                            if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                        }, 100);
+                    }
+                }
+            },
+            hideTable: () => document.getElementById('tableModal').style.display = 'none',
+
+            showExample: () => {
+                const modal = document.getElementById('exampleModal');
+                const content = document.getElementById('exampleContent');
+                const lvl = LEVELS[State.level];
+
+                if (lvl && lvl.example) {
+                    content.innerHTML = lvl.example.map(step => `<p style="margin-bottom:10px">🔹 ${step}</p>`).join('');
+                } else {
+                    content.innerHTML = '<p>No hay ejemplo disponible para este nivel.</p>';
+                }
+                modal.style.display = 'flex';
+            },
+            hideExample: () => document.getElementById('exampleModal').style.display = 'none',
+
+            num: (n) => {
+                const inp = document.getElementById('ansInput');
+                if (inp.value.length < 6) inp.value += n;
+            }, del: () => {
+                const inp = document.getElementById('ansInput');
+                inp.value = inp.value.slice(0, -1);
+            }
+        };
+
+
+    </script>
+    <script>
+        // === GAME ENGINE ===
+        const Game = {
+            initLevel: (id) => {
+                try {
+                    State.testMode = false;
+                    State.level = id;
+                    if (!LEVELS[id]) throw new Error("Nivel no encontrado: " + id);
+                    document.getElementById('levelName').textContent = LEVELS[id].name;
+                    document.getElementById('stratText').textContent = LEVELS[id].strat;
+                    // Set detailed strategy
+                    const detailEl = document.getElementById('stratDetail');
+                    if (STRAT_DETAILS[id]) {
+                        detailEl.textContent = STRAT_DETAILS[id];
+                        detailEl.style.display = 'none'; // start collapsed
+                    } else {
+                        detailEl.textContent = '';
+                        detailEl.style.display = 'none';
+                    }
+                    document.getElementById('feedback').textContent = '';
+                    document.getElementById('feedback').className = 'feedback-msg';
+                    Game.nextQuestion();
+                } catch (e) {
+                    console.error(e);
+                }
+            },
+            initTest: (opId) => {
+                State.testMode = true;
+                State.testOp = opId;
+                State.testCount = 0;
+                State.testScore = 0; // Se usará para acumular estadísticas (aciertos)
+                State.testStreak = 0;
+                State.testCurrentIndex = 0;
+                State.failedPhase = null;
+
+                const allKeys = Object.keys(LEVELS);
+                const opLevels = allKeys.filter(k => LEVELS[k].op === opId);
+
+                // Natural Sort (S1.1, S1.2, S2.1...)
+                opLevels.sort((a, b) => {
+                    const partsA = a.substring(1).split('.').map(Number);
+                    const partsB = b.substring(1).split('.').map(Number);
+                    if (partsA[0] !== partsB[0]) return partsA[0] - partsB[0];
+                    return partsA[1] - partsB[1];
+                });
+
+                State.testLevels = opLevels; // Todos los niveles ordenados de esa operación
+
+                document.getElementById('levelName').textContent = `TEST: ${OPS[opId].name}`;
+                document.getElementById('stratText').textContent = "Dificultad Progresiva";
+
+                Game.nextQuestion();
+            },
+            nextQuestion: () => {
+                let qId = State.level;
+
+                // TEST LOGIC
+                if (State.testMode) {
+                    if (State.testCount >= 20) {
+                        Game.finishTest();
+                        return;
+                    }
+                    State.testCount++;
+                    qId = State.testLevels[State.testCurrentIndex]; // Coger del índice actual
+                    document.getElementById('levelName').textContent = `TEST ${State.testCount}/20`;
+                    document.getElementById('stratText').textContent = `Nivel Evaluado: ${LEVELS[qId] ? LEVELS[qId].name : 'Bonus'}`;
+                }
+
+                State.qStart = Date.now(); // Start Timer
+                const q = Game.generate(qId);
+                State.q = q;
+                State.q.id = qId; // Store ID and Answer
+
+                // Update UI
+                document.getElementById('qText').innerHTML = q.text;
+                document.getElementById('qSub').textContent = q.sub || '';
+                document.getElementById('ansInput').value = '';
+                document.getElementById('feedback').textContent = '';
+                document.getElementById('visualArea').innerHTML = q.visual || '';
+
+                // Reset parallel box
+                State.parallelQs = [];
+                const pBox = document.getElementById('parallelContainer');
+                if (pBox) {
+                    if (State.teacher) {
+                        pBox.style.display = 'block';
+                        Game.renderParallelQs();
+                    } else {
+                        pBox.style.display = 'none';
+                    }
+                }
+
+                // Focus
+                setTimeout(() => document.getElementById('ansInput').focus(), 50);
+
+                // Auto table scroll
+                UI.showTable();
+                UI.hideTable();
+            },
+            finishTest: () => {
+                let msg = "";
+                const totalLevels = State.testLevels.length;
+                const percentageReached = State.testCurrentIndex / (totalLevels > 0 ? totalLevels : 1);
+
+                if (percentageReached >= 0.8) {
+                    msg = "¡Nivel Maestro! 🏆\nHas demostrado un dominio excelente. ¡Estás en la cumbre!";
+                } else if (State.failedPhase) {
+                    msg = `💡 Buen intento. Te aconsejo empezar a practicar por el bloque:\n"${State.failedPhase}"`;
+                } else if (percentageReached >= 0.5) {
+                    msg = "¡Buen trabajo! Tienes un nivel intermedio sólido.\nSigue practicando para ganar más agilidad y llegar más lejos.";
+                } else {
+                    msg = "Poco a poco. Es recomendable empezar a practicar desde los primeros niveles para fortalecer la base.";
+                }
+
+                alert(`Test Finalizado.\nPreguntas correctas: ${State.testScore} / 20\nNivel máximo alcanzado: ${LEVELS[State.testLevels[State.testCurrentIndex]] ? LEVELS[State.testLevels[State.testCurrentIndex]].name : 'Básico'}\n\n${msg}`);
+                State.testMode = false;
+                Nav.goHome();
+            },
+            swapParallel: (index) => {
+                if (!State.teacher || !State.parallelQs[index]) return;
+
+                // Intercambiar preguntas (principal <-> paralela[index])
+                const tempQ = State.q;
+                State.q = State.parallelQs[index];
+                State.parallelQs[index] = tempQ;
+
+                // Actualizar interfaz principal
+                document.getElementById('qText').innerHTML = State.q.text;
+                document.getElementById('qSub').textContent = State.q.sub || '';
+                document.getElementById('ansInput').value = '';
+                document.getElementById('feedback').textContent = '';
+                document.getElementById('visualArea').innerHTML = State.q.visual || '';
+
+                // Volver a renderizar lista
+                Game.renderParallelQs();
+
+                // Focus on new input
+                setTimeout(() => document.getElementById('ansInput').focus(), 50);
+            },
+            generateParallel: () => {
+                if (!State.teacher || !State.level) return;
+
+                // Generar nueva pregunta
+                let newQ = Game.generate(State.level);
+
+                // Evitar duplicados recientes
+                let attempts = 0;
+                while (attempts < 5) {
+                    let isDuplicate = (newQ.text === State.q.text) ||
+                        State.parallelQs.some(pq => pq.text === newQ.text);
+                    if (!isDuplicate) break;
+                    newQ = Game.generate(State.level);
+                    attempts++;
+                }
+                newQ.id = State.level;
+
+                State.parallelQs.push(newQ);
+                Game.renderParallelQs();
+            },
+            removeParallel: (index) => {
+                if (!State.teacher) return;
+                State.parallelQs.splice(index, 1);
+                Game.renderParallelQs();
+            },
+            renderParallelQs: () => {
+                const list = document.getElementById('parallelList');
+                if (!list) return;
+                list.innerHTML = '';
+
+                if (State.parallelQs.length === 0) {
+                    list.innerHTML = `<div style="font-size:0.85rem; color:#94A3B8; text-align:center; padding:10px;">Haz clic en ➕ para añadir</div>`;
+                    return;
+                }
+
+                State.parallelQs.forEach((pq, i) => {
+                    const item = document.createElement('div');
+                    item.style.cssText = 'background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:10px; display:flex; justify-content:space-between; align-items:center; transition:0.2s;';
+
+                    const textDiv = document.createElement('div');
+                    textDiv.style.cssText = 'flex:1; cursor:pointer; font-weight:700; font-size:1.1rem; color:#334155; text-align:center;';
+                    textDiv.innerHTML = pq.text + ' = ?';
+                    textDiv.title = "Haz clic para intercambiar";
+                    textDiv.onclick = () => Game.swapParallel(i);
+
+                    const delBtn = document.createElement('button');
+                    // Ensure the button isn't considered "empty"
+                    delBtn.innerHTML = '➖';
+                    delBtn.style.cssText = 'background:#FFEBEE; border:1px solid #FFCDD2; border-radius:4px; color:#C62828; padding:4px 6px; font-size:0.8rem; cursor:pointer; margin-left:8px;';
+                    delBtn.title = "Eliminar este ejercicio";
+                    delBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        Game.removeParallel(i);
+                    };
+
+                    item.appendChild(textDiv);
+                    item.appendChild(delBtn);
+
+                    item.onmouseenter = () => { item.style.borderColor = 'var(--primary)'; item.style.backgroundColor = '#EFF6FF'; };
+                    item.onmouseleave = () => { item.style.borderColor = '#E2E8F0'; item.style.backgroundColor = '#F8FAFC'; };
+
+                    list.appendChild(item);
+                });
+            },
+            generate: (id) => {
+                const r = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+                const rTen = (min, max) => r(min, max) * 10;
+                const rHun = (min, max) => r(min, max) * 100;
+
+                let t = "", a = 0, b = 0, c = 0, ans = 0, vis = "";
+
+                // === OP 0: SENTIDO NUMÉRICO ===
+                if (id === '0.1') { // Subitización
+                    const icons = ['🍎', '🚙', '🐶', '🐱', '⭐'];
+                    a = r(1, 5);
+                    vis = `<div style="font-size:3rem; letter-spacing:10px">${icons[r(0, 4)].repeat(a)}</div>`;
+                    t = "¿Cuántos hay?"; ans = a;
+                }
+                else if (id === '0.2') { // Ten Frame
+                    a = r(1, 9);
+                    let dots = '•'.repeat(a) + '◦'.repeat(10 - a);
+                    vis = `<div style="letter-spacing:5px;font-size:2rem;border:2px solid #ccc;padding:5px;width:fit-content;margin:0 auto;font-family:monospace">${dots.slice(0, 5)}<br>${dots.slice(5)}</div>`;
+                    t = `¿Cuántos faltan para 10?`; ans = 10 - a;
+                }
+                else if (id === '0.3') { a = r(1, 9); t = `${a} + ? = 10`; ans = 10 - a; }
+                else if (id === '0.4') { a = rTen(1, 9); t = `${a} + ? = 100`; ans = 100 - a; }
+                else if (id === '0.5') { a = r(85, 99); t = `${a} + ? = 100`; ans = 100 - a; }
+
+                // === OP 1: SUMA ===
+                else if (id === 'S1.1') { a = r(1, 9); do { b = r(1, 9); } while (a === b); t = `${a} + ${b}`; ans = a + b; }
+                else if (id === 'S1.2') { a = r(1, 5); t = `${a} + ${a}`; ans = a + a; }
+                else if (id === 'S1.3') { a = r(1, 5); t = `${a} + ${a + 1}`; ans = a + a + 1; }
+                else if (id === 'S1.4') { a = r(6, 9); t = `${a} + ${a}`; ans = a + a; }
+
+                else if (id === 'S2.1') { a = r(1, 8); b = 10 - a; c = r(1, 9); t = `${a} + ${b} + ${c}`; ans = 10 + c; }
+                else if (id === 'S2.9') { a = r(15, 85); t = `${a} + 9`; ans = a + 9; } // TRICO 9
+
+                else if (id === 'S3.1') { a = rTen(1, 8); b = r(1, 9); t = `${a} + ${b}`; ans = a + b; }
+                else if (id === 'S3.2') { a = rTen(1, 8); b = r(11, 19); t = `${a} + ${b}`; ans = a + b; }
+
+                else if (id === 'S4.1') { a = rTen(1, 8); b = rTen(1, 9 - (a / 10)); t = `${a} + ${b}`; ans = a + b; }
+                else if (id === 'S5.1') { a = rTen(1, 5); b = r(11, 49); if (b % 10 === 0) b++; t = `${a} + ${b}`; ans = a + b; }
+
+                else if (id === 'S6.1') { a = r(11, 85); if (a % 10 === 0) a++; let u = a % 10; b = r(11 - u, 9); t = `${a} + ${b}`; ans = a + b; }
+                else if (id === 'S6.9') { a = r(11, 85); t = `${a} + 11`; ans = a + 11; } // TRUCO 11
+
+                else if (id === 'S7.1') { a = r(11, 50); b = r(11, 40); if ((a % 10) + (b % 10) > 9) b -= (a % 10 + b % 10 - 9); t = `${a} + ${b}`; ans = a + b; }
+                else if (id === 'S7.2') { a = r(15, 59); b = r(15, 39); if ((a % 10) + (b % 10) < 10) b += 5; t = `${a} + ${b}`; ans = a + b; }
+
+                else if (id === 'S8.1') { a = rHun(1, 9); b = rTen(1, 9); t = `${a} + ${b}`; ans = a + b; }
+                else if (id === 'S8.2') { a = rHun(1, 9); b = r(11, 99); t = `${a} + ${b}`; ans = a + b; }
+                else if (id === 'S9.1') { a = r(101, 895); b = 10 - (a % 10) + r(1, 5); t = `${a} + ${b}`; ans = a + b; }
+
+                else if (id === 'S10.1') { a = r(101, 800); b = rTen(1, 9); t = `${a} + ${b}`; ans = a + b; }
+                else if (id === 'S10.2') { a = r(180, 780); b = rTen(3, 9); t = `${a} + ${b}`; ans = a + b; }
+
+                else if (id === 'S11.1') { a = r(120, 750); b = r(11, 80); t = `${a} + ${b}`; ans = a + b; }
+                else if (id === 'S12.1') { a = r(120, 600); b = r(120, 399); t = `${a} + ${b}`; ans = a + b; }
+
+                // === OP 2: RESTA ===
+                else if (id === 'R1.1') { b = r(1, 9); a = 10; t = `${a} - ${b}`; ans = a - b; }
+                else if (id === 'R1.2') { a = r(11, 19); b = r(a - 10 + 1, 9); t = `${a} - ${b}`; ans = a - b; } // Low teens - units
+
+                else if (id === 'R2.1') { a = rTen(2, 9); b = rTen(1, a / 10 - 1); t = `${a} - ${b}`; ans = a - b; }
+                else if (id === 'R2.9') { a = r(20, 99); t = `${a} - 9`; ans = a - 9; } // TRUCO -9
+
+                else if (id === 'R3.1') { a = r(21, 99); if (a % 10 === 0) a++; let tens = Math.floor(a / 10); b = rTen(1, tens - 1); t = `${a} - ${b}`; ans = a - b; }
+                else if (id === 'R4.1') { a = rTen(2, 9); b = r(1, 9); t = `${a} - ${b}`; ans = a - b; }
+
+                else if (id === 'R5.1') { let u = r(1, 9); a = rTen(3, 9) + u; b = rTen(1, Math.floor(a / 10) - 1) + u; t = `${a} - ${b}`; ans = a - b; }
+                else if (id === 'R5.2') { a = r(35, 99); b = r(15, a - 10); t = `${a} - ${b}`; ans = a - b; }
+
+                else if (id === 'R6.1') { a = rHun(2, 9); b = rHun(1, a / 100 - 1); t = `${a} - ${b}`; ans = a - b; }
+                else if (id === 'R7.1') { a = r(201, 999); let c = Math.floor(a / 100); b = rHun(1, c - 1); t = `${a} - ${b}`; ans = a - b; }
+                else if (id === 'R8.1') { a = rHun(3, 9); b = rTen(11, (a / 10) - 10); t = `${a} - ${b}`; ans = a - b; }
+                else if (id === 'R9.1') { a = r(200, 900); a = Math.round(a / 10) * 10; b = r(100, a - 50); b = Math.round(b / 10) * 10; t = `${a} - ${b}`; ans = a - b; }
+                else if (id === 'R10.1') { a = rHun(3, 9); b = r(101, a - 50); t = `${a} - ${b}`; ans = a - b; }
+                else if (id === 'R11.1') { a = r(200, 999); b = r(100, a - 50); t = `${a} - ${b}`; ans = a - b; }
+
+                // === OP 3: MULTIPLICACIÓN ===
+                else if (id && id.startsWith('M0')) { a = r(1, 10); if (id === 'M0.2') a *= 10; t = `Doble de ${a}`; ans = a * 2; }
+                else if (id === 'M1.1') { a = r(1, 10); t = `${a} x 2`; ans = a * 2; }
+                else if (id === 'M1.2') { a = r(1, 10); t = `${a} x 5`; ans = a * 5; }
+                else if (id === 'M1.3') { a = r(1, 10); t = `${a} x 10`; ans = a * 10; }
+
+                else if (id === 'M2.1') { a = r(1, 10); t = `${a} x 3`; ans = a * 3; }
+                else if (id === 'M2.2') { a = r(1, 10); t = `${a} x 4`; ans = a * 4; }
+                else if (id === 'M2.3') { a = r(1, 10); t = `${a} x 9`; ans = a * 9; }
+                else if (id === 'M2.4') { a = r(2, 9); b = r(6, 8); t = `${a} x ${b}`; ans = a * b; }
+
+                else if (id === 'M3.1') { a = r(11, 99); b = r(2, 5); t = `${a} x ${b}`; ans = a * b; }
+                else if (id === 'M4.1') { a = r(11, 50); b = r(2, 9); t = `${a} x ${b}`; ans = a * b; }
+                else if (id === 'M5.1') { a = 25; b = r(2, 8) * 2; t = `${a} x ${b}`; ans = a * b; }
+                else if (id === 'M6.1') { a = rTen(1, 9); b = rTen(1, 9); t = `${a} x ${b}`; ans = a * b; }
+
+                else if (id === 'M7.1') { a = r(2, 20) * 10; b = Math.random() > .5 ? 10 : 50; t = `${b}% de ${a}`; ans = (a * b) / 100; }
+                else if (id === 'M7.2') { a = r(2, 20) * 10; b = Math.random() > .5 ? 25 : 5; t = `${b}% de ${a}`; ans = (a * b) / 100; }
+                else if (id === 'M8.1') { a = 0.5; b = r(2, 20) * 2; t = `${a} x ${b}`; ans = a * b; }
+
+                // === OP 4: DIVISIÓN ===
+                else if (id === 'D0.1') { b = r(2, 9); ans = r(2, 9); a = b * ans; t = `${a} : ${b}`; }
+                else if (id === 'D0.2') { ans = r(1, 50); a = ans * 2; t = `Mitad de ${a}`; }
+                else if (id === 'D1.1') { b = r(2, 5); let tens = r(1, 3) * b * 10; let units = r(1, 3) * b; a = tens + units; t = `${a} : ${b}`; ans = a / b; }
+                else if (id === 'D2.1') { b = r(2, 5); let h = r(1, 3) * b * 100; a = h + r(1, 3) * b * 10 + r(1, 3) * b; t = `${a} : ${b}`; ans = a / b; }
+
+                else if (id && id.startsWith('D')) {
+                    // Generic fallback for upper Division
+                    b = r(2, 9); a = r(20, 100);
+                    if (id === 'D3.1') { b = 3; a = r(10, 30) * 3; }
+                    else if (id.includes('Resto')) { a = r(20, 100); }
+
+                    t = `${a} : ${b}`;
+                    let q = Math.floor(a / b);
+                    ans = q;
+                }
+
+                // Default
+                else { a = r(1, 10); b = r(1, 10); t = `${a} + ${b}`; ans = a + b; }
+
+                return { text: t, ans: ans, visual: vis };
+            },
+            check: () => {
+                const inp = document.getElementById('ansInput');
+                let val = parseInt(inp.value);
+                if (isNaN(val)) return;
+
+                // Time bonus
+                const now = Date.now();
+                const diff = (now - State.qStart) / 1000;
+                let speedBonus = 0;
+                if (diff < 3) speedBonus = 0.5;
+                else if (diff < 6) speedBonus = 0.2;
+
+                if (val === State.q.ans) {
+                    // Correct
+                    inp.className = 'answer-input correct';
+
+                    if (State.testMode) {
+                        State.testScore++; // Acierto
+                        State.testStreak++;
+                        document.getElementById('feedback').textContent = speedBonus > 0 ? '¡Rápido! ⚡' : '¡Bien! 👍';
+
+                        // Adaptive Logic Up
+                        if (State.testStreak >= 3) {
+                            State.testCurrentIndex += 2; // Jump fast
+                        } else if (State.testStreak >= 2) {
+                            State.testCurrentIndex += 1; // Jump normal
+                        }
+                        // Bound the index
+                        if (State.testCurrentIndex >= State.testLevels.length) {
+                            State.testCurrentIndex = State.testLevels.length - 1;
+                        }
+
+                        setTimeout(Game.nextQuestion, 1000);
+                    } else {
+                        Backend.saveProgress(10, true).then(masteryCount => {
+                            if (masteryCount === 20) {
+                                document.getElementById('feedback').textContent = '¡Fase Dominada! 🏆';
+                                alert("¡Nivel Dominado! 🛑\n\nHas logrado 20 aciertos SEGUIDOS.\n¡Ya eres un experto en esta fase!\nPasa a la siguiente para seguir sumando puntos.");
+                            } else if (masteryCount > 20) {
+                                document.getElementById('feedback').textContent = 'Fase Completada (Sin puntos)';
+                            } else {
+                                document.getElementById('feedback').textContent = '¡Correcto! 🎉';
+                            }
+                            UI.updateStats();
+                            setTimeout(Game.nextQuestion, 1000);
+                        });
+                    }
+                } else {
+                    // Wrong
+                    inp.className = 'answer-input wrong';
+                    document.getElementById('feedback').textContent = `Era ${State.q.ans}`;
+                    if (State.testMode) {
+                        State.testStreak = 0;
+                        State.testCurrentIndex = Math.max(0, State.testCurrentIndex - 1); // Bajamos un nivel para ajustar
+
+                        // CAPTURE FAILED PHASE FOR SUGGESTION
+                        if (!State.failedPhase) {
+                            // Get the name of the phase from LEVELS
+                            const lvlInfo = LEVELS[State.q.id];
+                            if (lvlInfo) State.failedPhase = lvlInfo.name;
+                        }
+                        setTimeout(Game.nextQuestion, 1200);
+                    } else {
+                        Backend.saveProgress(0, false).then(() => {
+                            UI.updateStats();
+                            setTimeout(() => {
+                                inp.value = '';
+                                inp.className = 'answer-input';
+                                inp.focus();
+                            }, 1200);
+                        });
+                    }
+                }
+            },
+            skip: () => {
+                Game.nextQuestion();
+            }
+        };
+
+    </script>
+    <script>
+        // === DECOMPOSITION ENGINE (ABN MANIPULATIVES) ===
+        const DecompEngine = {
+            stateA: { hundreds: 0, tens: 0, units: 0 },
+            stateB: { hundreds: 0, tens: 0, units: 0 },
+            stateC: { hundreds: 0, tens: 0, units: 0 },
+            originalA: 0,
+            originalB: 0,
+            originalC: 0,
+            removeMode: false,
+            history: [],
+
+            open: () => {
+                if (!State.q || !State.q.text) return alert("Primero genera una pregunta.");
+                const modal = document.getElementById('decompModal');
+                modal.style.display = 'flex';
+
+                // Parse operands from question text
+                const nums = State.q.text.match(/\d+/g);
+                if (!nums || nums.length < 1) {
+                    document.getElementById('decompQuestionRef').textContent = State.q.text;
+                    return;
+                }
+
+                DecompEngine.originalA = parseInt(nums[0]);
+                DecompEngine.originalB = nums.length > 1 ? parseInt(nums[1]) : 0;
+                DecompEngine.originalC = nums.length > 2 ? parseInt(nums[2]) : 0;
+
+                document.getElementById('decompQuestionRef').innerHTML =
+                    `<span style="font-size:1.5rem">${State.q.text} = ?</span>`;
+
+                document.getElementById('decompLabelA').textContent = `Número: ${DecompEngine.originalA}`;
+                document.getElementById('decompLabelB').textContent = DecompEngine.originalB > 0 ?
+                    `Número: ${DecompEngine.originalB}` : '';
+                document.getElementById('decompLabelC').textContent = DecompEngine.originalC > 0 ?
+                    `Número: ${DecompEngine.originalC}` : '';
+
+                // Show/hide workspace C
+                const panelC = document.getElementById('decompPanelC');
+                const groupCBtn = document.getElementById('decompGroupCBtn');
+                if (DecompEngine.originalC > 0) {
+                    panelC.style.display = '';
+                    groupCBtn.style.display = '';
+                } else {
+                    panelC.style.display = 'none';
+                    groupCBtn.style.display = 'none';
+                }
+
+                DecompEngine.decompose(DecompEngine.originalA, 'A');
+                if (DecompEngine.originalB > 0) {
+                    DecompEngine.decompose(DecompEngine.originalB, 'B');
+                } else {
+                    document.getElementById('decompAreaB').innerHTML = '';
+                    document.getElementById('decompCountB').textContent = '';
+                }
+                if (DecompEngine.originalC > 0) {
+                    DecompEngine.decompose(DecompEngine.originalC, 'C');
+                } else {
+                    document.getElementById('decompAreaC').innerHTML = '';
+                    document.getElementById('decompCountC').textContent = '';
+                }
+
+                // Reset remove mode
+                DecompEngine.removeMode = false;
+                DecompEngine.updateRemoveBtn();
+                DecompEngine.history = [];
+
+                // Setup drop zones
+                DecompEngine.setupDropZone('A');
+                DecompEngine.setupDropZone('B');
+                if (DecompEngine.originalC > 0) DecompEngine.setupDropZone('C');
+            },
+
+            close: () => {
+                document.getElementById('decompModal').style.display = 'none';
+                DecompEngine.removeMode = false;
+            },
+
+            moveBlock: (fromSide, toSide, blockType) => {
+                const srcState = DecompEngine.getState(fromSide);
+                const dstState = DecompEngine.getState(toSide);
+
+                // Move block from source to destination
+                DecompEngine.saveState();
+                if (blockType === 'hundred' && srcState.hundreds > 0) {
+                    srcState.hundreds--;
+                    dstState.hundreds++;
+                } else if (blockType === 'ten' && srcState.tens > 0) {
+                    srcState.tens--;
+                    dstState.tens++;
+                } else if (blockType === 'unit' && srcState.units > 0) {
+                    srcState.units--;
+                    dstState.units++;
+                }
+
+                // Auto-compose after drop
+                DecompEngine.tryAutoCompose(toSide);
+
+                DecompEngine.render('A');
+                DecompEngine.render('B');
+                if (DecompEngine.originalC > 0) DecompEngine.render('C');
+            },
+
+            setupDropZone: (side) => {
+                const area = document.getElementById(`decompArea${side}`);
+                area.ondragover = (e) => {
+                    e.preventDefault();
+                    area.style.borderColor = '#4CAF50';
+                    area.style.background = '#E8F5E9';
+                };
+                area.ondragleave = () => {
+                    area.style.borderColor = '#CCC';
+                    area.style.background = '#FAFAFA';
+                };
+                area.ondrop = (e) => {
+                    e.preventDefault();
+                    area.style.borderColor = '#CCC';
+                    area.style.background = '#FAFAFA';
+
+                    const blockType = e.dataTransfer.getData('blockType');   // 'hundred', 'ten', 'unit'
+                    const fromSide = e.dataTransfer.getData('fromSide');     // 'A', 'B', or 'C'
+
+                    if (!blockType || fromSide === side) return; // Can't drop on same side
+
+                    DecompEngine.moveBlock(fromSide, side, blockType);
+                };
+            },
+
+            tryAutoCompose: (side) => {
+                const st = DecompEngine.getState(side);
+                let composed = false;
+
+                if (st.units >= 10) {
+                    st.tens += Math.floor(st.units / 10);
+                    st.units = st.units % 10;
+                    composed = true;
+                }
+                if (st.tens >= 10) {
+                    st.hundreds += Math.floor(st.tens / 10);
+                    st.tens = st.tens % 10;
+                    composed = true;
+                }
+
+                if (composed) {
+                    const area = document.getElementById(`decompArea${side}`);
+                    area.style.borderColor = '#FF9800';
+                    area.style.background = '#FFF8E1';
+                    setTimeout(() => {
+                        area.style.borderColor = '#CCC';
+                        area.style.background = '#FAFAFA';
+                    }, 600);
+                }
+            },
+
+            toggleRemoveMode: () => {
+                DecompEngine.removeMode = !DecompEngine.removeMode;
+                DecompEngine.updateRemoveBtn();
+                DecompEngine.render('A');
+                DecompEngine.render('B');
+                if (DecompEngine.originalC > 0) DecompEngine.render('C');
+            },
+
+            getState: (side) => {
+                if (side === 'A') return DecompEngine.stateA;
+                if (side === 'B') return DecompEngine.stateB;
+                return DecompEngine.stateC;
+            },
+
+            updateRemoveBtn: () => {
+                const btn = document.getElementById('decompRemoveBtn');
+                if (DecompEngine.removeMode) {
+                    btn.style.background = '#C62828';
+                    btn.style.color = 'white';
+                    btn.style.borderColor = '#B71C1C';
+                    btn.textContent = '➖ RESTANDO...';
+                } else {
+                    btn.style.background = '#FFEBEE';
+                    btn.style.color = '#C62828';
+                    btn.style.borderColor = '#EF9A9A';
+                    btn.textContent = '➖ Restar';
+                }
+            },
+
+            saveState: () => {
+                DecompEngine.history.push({
+                    a: { ...DecompEngine.stateA },
+                    b: { ...DecompEngine.stateB },
+                    c: { ...DecompEngine.stateC }
+                });
+                if (DecompEngine.history.length > 50) DecompEngine.history.shift();
+            },
+
+            undo: () => {
+                if (DecompEngine.history.length === 0) return;
+                const prev = DecompEngine.history.pop();
+                DecompEngine.stateA = prev.a;
+                DecompEngine.stateB = prev.b;
+                DecompEngine.stateC = prev.c;
+                DecompEngine.render('A');
+                DecompEngine.render('B');
+                if (DecompEngine.originalC > 0) DecompEngine.render('C');
+            },
+
+            decompose: (num, side) => {
+                const h = Math.floor(num / 100);
+                const t = Math.floor((num % 100) / 10);
+                const u = num % 10;
+
+                const st = DecompEngine.getState(side);
+                st.hundreds = h; st.tens = t; st.units = u;
+
+                DecompEngine.render(side);
+            },
+
+            render: (side) => {
+                const area = document.getElementById(`decompArea${side}`);
+                const st = DecompEngine.getState(side);
+                area.innerHTML = '';
+
+                // Helper to make blocks draggable
+                // Helper to make blocks draggable with Touch Support (iOS)
+                const makeDraggable = (el, blockType) => {
+                    el.draggable = true;
+                    // Standard Drag (Desktop)
+                    el.ondragstart = (e) => {
+                        e.dataTransfer.setData('blockType', blockType);
+                        e.dataTransfer.setData('fromSide', side);
+                        setTimeout(() => el.style.opacity = '0.4', 0);
+                    };
+                    el.ondragend = () => { el.style.opacity = '1'; };
+
+                    // Touch Drag (Mobile/iOS)
+                    el.ontouchstart = (e) => {
+                        DecompEngine.touchDragItem = { blockType, fromSide: side };
+                        el.style.opacity = '0.5';
+                    };
+                    el.ontouchmove = (e) => {
+                        // Prevent scrolling while dragging a block
+                        if (DecompEngine.touchDragItem) e.preventDefault();
+                    };
+                    el.ontouchend = (e) => {
+                        el.style.opacity = '1';
+                        if (DecompEngine.touchDragItem) {
+                            const touch = e.changedTouches[0];
+                            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                            const dropZone = target ? target.closest('[id^="decompArea"]') : null;
+
+                            if (dropZone) {
+                                const toSide = dropZone.id.replace('decompArea', '');
+                                if (toSide !== DecompEngine.touchDragItem.fromSide) {
+                                    DecompEngine.moveBlock(DecompEngine.touchDragItem.fromSide, toSide, DecompEngine.touchDragItem.blockType);
+                                }
+                            }
+                        }
+                        DecompEngine.touchDragItem = null;
+                    };
+                };
+
+                // Hundreds
+                for (let i = 0; i < st.hundreds; i++) {
+                    const el = document.createElement('div');
+                    el.className = 'block-hundred block-pop';
+                    el.title = DecompEngine.removeMode ? '❌ Click para eliminar' : 'Click: descomponer | Arrastra: mover';
+                    if (DecompEngine.removeMode) el.style.outline = '2px dashed #E74C3C';
+                    el.onclick = () => {
+                        DecompEngine.saveState();
+                        if (DecompEngine.removeMode) {
+                            st.hundreds--;
+                        } else {
+                            st.hundreds--;
+                            st.tens += 10;
+                        }
+                        DecompEngine.render(side);
+                    };
+                    makeDraggable(el, 'hundred');
+                    area.appendChild(el);
+                }
+
+                // Tens
+                for (let i = 0; i < st.tens; i++) {
+                    const el = document.createElement('div');
+                    el.className = 'block-ten block-pop';
+                    el.title = DecompEngine.removeMode ? '❌ Click para eliminar' : 'Click: descomponer | Arrastra: mover';
+                    if (DecompEngine.removeMode) el.style.outline = '2px dashed #E74C3C';
+                    el.onclick = () => {
+                        DecompEngine.saveState();
+                        if (DecompEngine.removeMode) {
+                            st.tens--;
+                        } else {
+                            st.tens--;
+                            st.units += 10;
+                        }
+                        DecompEngine.render(side);
+                    };
+                    makeDraggable(el, 'ten');
+                    area.appendChild(el);
+                }
+
+                // Units
+                for (let i = 0; i < st.units; i++) {
+                    const el = document.createElement('div');
+                    el.className = 'block-unit block-pop';
+                    el.title = DecompEngine.removeMode ? '❌ Click para eliminar' : 'Arrastra: mover al otro lado';
+                    if (DecompEngine.removeMode) {
+                        el.style.outline = '2px dashed #E74C3C';
+                        el.onclick = () => {
+                            DecompEngine.saveState();
+                            st.units--;
+                            DecompEngine.render(side);
+                        };
+                    }
+                    makeDraggable(el, 'unit');
+                    area.appendChild(el);
+                }
+
+                // Update counter
+                const total = st.hundreds * 100 + st.tens * 10 + st.units;
+                document.getElementById(`decompCount${side}`).innerHTML =
+                    `<span style="color:#2E7D32">${st.hundreds}C</span> + ` +
+                    `<span style="color:#C62828">${st.tens}D</span> + ` +
+                    `<span style="color:#1565C0">${st.units}U</span> = ${total}`;
+            },
+
+            autoGroup: (side) => {
+                DecompEngine.saveState();
+                DecompEngine.tryAutoCompose(side);
+                DecompEngine.render(side);
+            },
+
+            reset: () => {
+                DecompEngine.history = [];
+                if (DecompEngine.originalA > 0) DecompEngine.decompose(DecompEngine.originalA, 'A');
+                if (DecompEngine.originalB > 0) DecompEngine.decompose(DecompEngine.originalB, 'B');
+                else {
+                    document.getElementById('decompAreaB').innerHTML = '';
+                    document.getElementById('decompCountB').textContent = '';
+                }
+                if (DecompEngine.originalC > 0) DecompEngine.decompose(DecompEngine.originalC, 'C');
+                else {
+                    document.getElementById('decompAreaC').innerHTML = '';
+                    document.getElementById('decompCountC').textContent = '';
+                }
+            }
+        };
+    </script>
+    <script>
+        // === INITIALIZATION ===
+        window.addEventListener('load', () => {
+            Backend.init().then(() => {
+                Backend.loadProfiles();
+            });
+            // Enter key support
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Enter') {
+                    if (document.getElementById('ansInput') === document.activeElement) Game.check();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
